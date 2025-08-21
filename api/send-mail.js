@@ -45,7 +45,7 @@ export default async (req, res) => {
       <br><br>${t.outro}
     `;
     const response = await resend.emails.send({
-      from: 'nguyaz@ehcb.ch',
+    from: 'onboarding@resend.dev',
       to: [to, admin],
       subject: t.subject,
       html: htmlBody
