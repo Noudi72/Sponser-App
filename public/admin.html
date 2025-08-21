@@ -30,9 +30,53 @@
       </div>
       <div id="ordersTable"></div>
   <div id="weeklySummary" class="mt-4"></div>
+      <div class="mb-3">
+  <button id="exportSummaryExcel" class="btn btn-success btn-sm">Zusammenfassung als Excel exportieren</button>
+  <button id="exportSummaryPDF" class="btn btn-danger btn-sm ms-2">Zusammenfassung als PDF exportieren</button>
+      </div>
     </div>
   </div>
   <script>
+    document.getElementById('exportSummaryPDF').onclick = async function() {
+      if (!weeklySummaryData.length) return alert('Keine Bestellungen in den letzten 7 Tagen.');
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      // Logo einfügen
+      const logoUrl = '/assets/logo.png';
+      let imgData = null;
+      try {
+        const response = await fetch(logoUrl);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        imgData = await new Promise(resolve => {
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch(e) {}
+      if (imgData) doc.addImage(imgData, 'PNG', 10, 8, 40, 18);
+      doc.setFontSize(16);
+      doc.text('Wöchentliche Zusammenfassung', 55, 20);
+      doc.setFontSize(11);
+      let startY = 32;
+      // Tabellenkopf
+      doc.setFont('helvetica', 'bold');
+      doc.text('Produkt', 10, startY);
+      doc.text('Geschmack', 70, startY);
+      doc.text('Menge', 130, startY);
+      doc.text('Preis (CHF)', 170, startY);
+      doc.setFont('helvetica', 'normal');
+      startY += 8;
+      for (const row of weeklySummaryData) {
+        doc.text(String(row[0]), 10, startY);
+        doc.text(String(row[1]), 70, startY);
+        doc.text(String(row[2]), 130, startY);
+        doc.text(String(row[3]), 170, startY);
+        startY += 8;
+        if (startY > 190) { doc.addPage(); if (imgData) doc.addImage(imgData, 'PNG', 10, 8, 40, 18); startY = 32; }
+      }
+      doc.save('woechentliche-zusammenfassung.pdf');
+    };
+  let weeklySummaryData = [];
     const supabaseUrl = 'https://sqlnoaaimkrxrkspqtbq.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxbG5vYWFpbWtyeHJrc3BxdGJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NzgyMzAsImV4cCI6MjA3MTI1NDIzMH0.oI201Oqgc2M3ckXePjZAHty1hXVC8M8qptjz8r9QUG4';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -66,6 +110,7 @@
       const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
       const weeklyOrders = data.filter(order => new Date(order.timestamp).getTime() >= oneWeekAgo);
       const summaryMap = {};
+      weeklySummaryData = [];
       for (const order of weeklyOrders) {
         let arr = [];
         try {
@@ -89,10 +134,22 @@
         for (const key in summaryMap) {
           const s = summaryMap[key];
           summaryHtml += `<tr><td>${s.produkt}</td><td>${s.geschmack}</td><td>${s.menge}</td><td>${Number(s.preis).toFixed(2)}</td></tr>`;
+          weeklySummaryData.push([s.produkt, s.geschmack, s.menge, Number(s.preis).toFixed(2)]);
         }
         summaryHtml += `</tbody></table>`;
       }
       document.getElementById('weeklySummary').innerHTML = summaryHtml;
+    document.getElementById('exportSummaryExcel').onclick = function() {
+      if (!weeklySummaryData.length) return alert('Keine Bestellungen in den letzten 7 Tagen.');
+      const wsData = [
+        ['Produkt', 'Geschmack', 'Menge', 'Preis (CHF)'],
+        ...weeklySummaryData
+      ];
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      XLSX.utils.book_append_sheet(wb, ws, 'Zusammenfassung');
+      XLSX.writeFile(wb, 'woechentliche-zusammenfassung.xlsx');
+    };
     }
 
     window.deleteOrder = async function(id) {
