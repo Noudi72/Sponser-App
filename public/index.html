@@ -6,7 +6,8 @@
   <title>Sponser Bestellshop</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <link rel="icon" type="image/png" href="/assets/icon.png">
-  <link rel="apple-touch-icon" href="/assets/icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icon.png">
+  <link rel="manifest" href="/manifest.json">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     html, body { margin:0; padding:0; background:#fff; color:#222; font-family: Arial, sans-serif; min-height:100vh; width:100vw; overflow-x:hidden;}
@@ -31,19 +32,19 @@
     .product-grid {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 24px;
   width: 100%;
   max-width: 100%;
   padding: 0;
     }
     .product-card {
   background:#fff;
-  border-radius: 0;
-  box-shadow: none;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
   width: 100%;
   margin: 0;
   padding: 1.15em 0 1.25em 0;
-  border-bottom: 1.5px solid #f3f3f3;
+  border: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -117,6 +118,49 @@
     </div>
   </div>
   <div class="main" id="mainView"></div>
+
+  <nav class="bottom-nav">
+    <a href="/index.html" class="nav-btn">
+      <span>🏠</span><br>Home
+    </a>
+    <a href="#" class="nav-btn" onclick="showCart()">
+      <span>🛒</span><br>Warenkorb
+    </a>
+    <a href="/admin.html" class="nav-btn">
+      <span>👤</span><br>Admin
+    </a>
+  </nav>
+    .bottom-nav {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      height: 62px;
+      background: #fff;
+      border-top: 1.5px solid #ececec;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
+    }
+    .nav-btn {
+      flex: 1;
+      text-align: center;
+      color: #222;
+      font-size: 1.15em;
+      text-decoration: none;
+      padding: 0.5em 0 0.2em 0;
+      font-weight: 500;
+      transition: color .15s;
+    }
+    .nav-btn:active, .nav-btn:focus {
+      color: #e10c18;
+    }
+    .nav-btn span {
+      font-size: 1.5em;
+      display: block;
+      margin-bottom: 2px;
+    }
+    body { padding-bottom: 70px; }
   <!-- Entfernt: doppelter Admin-Bestellungen Button -->
   </div>
   <script>
@@ -297,7 +341,16 @@
           preis: prod.preis, bild_url: prod.bild_url, qty
         });
       }
+      showAddToCartFeedback();
       showCart();
+    function showAddToCartFeedback() {
+      let fb = document.createElement('div');
+      fb.className = 'cart-feedback';
+      fb.innerHTML = '✔️ Produkt hinzugefügt!';
+      document.body.appendChild(fb);
+      setTimeout(() => { fb.classList.add('show'); }, 10);
+      setTimeout(() => { fb.classList.remove('show'); setTimeout(()=>fb.remove(),300); }, 1200);
+    }
     }
     function showCart() {
       view = 'cart';
