@@ -1,0 +1,12 @@
+{
+  "name": "ehcb-sponser-app",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node api/send-order.js"
+  },
+  "dependencies": {
+  "resend": "^6.0.1"
+  }
+}
