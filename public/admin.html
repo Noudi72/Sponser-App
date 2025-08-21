@@ -37,11 +37,11 @@
         let produkte = '';
         try {
           const arr = typeof order.produkte === 'string' ? JSON.parse(order.produkte) : order.produkte;
-          produkte = arr.map(p => `<div><b>${p.produkt}</b> (${p.geschmack}) x${p.menge} – CHF ${p.preis}</div>`).join('');
+          produkte = arr.map(p => `<div><b>${p.produkt}</b> (${p.geschmack}) x${p.menge} – CHF ${Number(p.preis).toFixed(2)}</div>`).join('');
         } catch(e) {
           produkte = order.produkte;
         }
-        html += `<tr><td>${order.id}</td><td>${produkte}</td><td>${new Date(order.timestamp).toLocaleString()}</td></tr>`;
+        html += `<tr><td>${order.id}</td><td><b>${order.name}</b><br>${produkte}</td><td>${new Date(order.timestamp).toLocaleString()}</td></tr>`;
       }
       html += '</tbody></table>';
       document.getElementById('ordersTable').innerHTML = html;
