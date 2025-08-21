@@ -18,19 +18,19 @@ export default async (req, res) => {
     const total = ordered.reduce((sum, o) => sum + (+o.preis) * (+o.menge), 0);
     const texts = {
       de: {
-    subject: "Deine Bestellung bei EHCB Sponser",
-    intro: "Vielen Dank für deine Bestellung!",
-    outro: "Herzlichen Dank für deine Bestellung - dein EHCB-Sponser-Team, Sportliche Grüsse Noël Guyaz"
+        subject: "Deine Bestellung bei EHCB Sponser",
+        intro: "Vielen Dank für deine Bestellung!",
+        outro: "Herzlichen Dank für deine Bestellung - dein EHCB-Sponser-Team<br>Sportliche Grüsse<br>Noël Guyaz"
       },
       fr: {
         subject: "Votre commande chez EHCB Sponser",
         intro: "Merci pour votre commande !",
-    outro: "Merci beaucoup pour votre commande - votre équipe EHCB-Sponser, Sportives salutations Noël Guyaz"
+        outro: "Merci beaucoup pour votre commande - votre équipe EHCB-Sponser<br>Sportives salutations<br>Noël Guyaz"
       },
       en: {
         subject: "Your Order at EHCB Sponser",
         intro: "Thank you for your order!",
-    outro: "Thank you very much for your order - your EHCB-Sponser team, Best regards Noël Guyaz"
+        outro: "Thank you very much for your order - your EHCB-Sponser team<br>Best regards<br>Noël Guyaz"
       }
     };
     const t = texts[lang] || texts.de;
