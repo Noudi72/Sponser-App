@@ -119,17 +119,6 @@
   </div>
   <div class="main" id="mainView"></div>
 
-  <nav class="bottom-nav">
-  <a href="/index.html" class="nav-btn">
-    <span>🏠</span><br>Home
-  </a>
-  <a href="#" class="nav-btn" onclick="showCart()">
-    <span>🛒</span><br>Warenkorb
-  </a>
-  <a href="/admin.html" class="nav-btn">
-    <span>👤</span><br>Admin
-  </a>
-  </nav>
   <script>
     // --------- SUPABASE INITIALISIEREN ---------
     const supabaseUrl = 'https://sqlnoaaimkrxrkspqtbq.supabase.co';
@@ -451,27 +440,17 @@
       setLang(lang);
     });
     window.onload = fetchProducts;
-  </script>
-  <nav class="bottom-nav">
-    <a href="/index.html" class="nav-btn">
-      <span>🏠</span><br>Home
-    </a>
-    <a href="#" class="nav-btn" onclick="showCart()">
-      <span>🛒</span><br>Warenkorb
-    </a>
-    <a href="/admin.html" class="nav-btn">
-      <span>👤</span><br>Admin
-    </a>
-  </nav>
+</script>
+<nav class="bottom-nav">
+  <a href="/index.html" class="nav-btn">
+    <span>🏠</span><br>Home
+  </a>
+  <a href="#" class="nav-btn" onclick="showCart()">
+    <span>🛒</span><br>Warenkorb
+  </a>
+  <a href="/admin.html" class="nav-btn">
+    <span>👤</span><br>Admin
+  </a>
+</nav>
 </body>
-    .bottom-nav {
-      position: fixed;
-      left: 0; right: 0; bottom: 0;
-      height: 62px;
-      background: #fff;
-      border-top: 1.5px solid #ececec;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 100;
-      box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
+</html>
