@@ -95,6 +95,55 @@
     @media (min-width:701px){
       .main, .product-grid, .product-card, .detail-page, .cart-page { max-width:520px; width:100%; margin:0 auto;}
     }
+  /* Neue Bottom-Navigation */
+  .bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 60px;
+    background: #fff;
+    border-top: 1.5px solid #ececec;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.05);
+  }
+  .nav-btn {
+    flex: 1 1 0;
+    text-align: center;
+    font-size: 1.01em;
+    color: #e10c18;
+    background: none;
+    border: none;
+    outline: none;
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 7px 0 0 0;
+    transition: background 0.15s;
+    border-radius: 7px 7px 0 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-btn:active,
+  .nav-btn:hover {
+    background: #f4f4f8;
+    color: #bb0920;
+    text-decoration: none;
+  }
+  .nav-btn span {
+    font-size: 1.5em;
+    display: block;
+    margin-bottom: -2px;
+  }
+  @media (min-width: 701px) {
+    .bottom-nav { max-width: 520px; left: 50%; transform: translateX(-50%); border-radius: 19px 19px 0 0; }
+  }
   </style>
 </head>
 <body>
@@ -441,15 +490,19 @@
     });
     window.onload = fetchProducts;
 </script>
+</script>
 <nav class="bottom-nav">
   <a href="/index.html" class="nav-btn">
-    <span>🏠</span><br>Home
+    <span>🏠</span>
+    <span style="font-size:0.97em;">Home</span>
   </a>
-  <a href="#" class="nav-btn" onclick="showCart()">
-    <span>🛒</span><br>Warenkorb
+  <a href="#" class="nav-btn" onclick="showCart();return false;">
+    <span>🛒</span>
+    <span style="font-size:0.97em;">Warenkorb</span>
   </a>
   <a href="/admin.html" class="nav-btn">
-    <span>👤</span><br>Admin
+    <span>👤</span>
+    <span style="font-size:0.97em;">Admin</span>
   </a>
 </nav>
 </body>
