@@ -29,6 +29,7 @@
         <button id="exportPDF" class="btn btn-danger">Export als PDF</button>
       </div>
       <div id="ordersTable"></div>
+  <div id="weeklySummary" class="mt-4"></div>
     </div>
   </div>
   <script>
@@ -60,6 +61,38 @@
       }
       html += '</tbody></table>';
       document.getElementById('ordersTable').innerHTML = html;
+
+      // Wöchentliche Zusammenfassung
+      const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const weeklyOrders = data.filter(order => new Date(order.timestamp).getTime() >= oneWeekAgo);
+      const summaryMap = {};
+      for (const order of weeklyOrders) {
+        let arr = [];
+        try {
+          arr = typeof order.produkte === 'string' ? JSON.parse(order.produkte) : order.produkte;
+        } catch(e) {
+          arr = [];
+        }
+        for (const p of arr) {
+          const key = `${p.produkt}|${p.geschmack}|${p.preis}`;
+          if (!summaryMap[key]) {
+            summaryMap[key] = { produkt: p.produkt, geschmack: p.geschmack, preis: p.preis, menge: 0 };
+          }
+          summaryMap[key].menge += Number(p.menge);
+        }
+      }
+      let summaryHtml = `<h4>Wöchentliche Zusammenfassung</h4>`;
+      if (Object.keys(summaryMap).length === 0) {
+        summaryHtml += `<div class='text-muted'>Keine Bestellungen in den letzten 7 Tagen.</div>`;
+      } else {
+        summaryHtml += `<table class='table table-sm table-bordered'><thead><tr><th>Produkt</th><th>Geschmack</th><th>Menge</th><th>Preis (CHF)</th></tr></thead><tbody>`;
+        for (const key in summaryMap) {
+          const s = summaryMap[key];
+          summaryHtml += `<tr><td>${s.produkt}</td><td>${s.geschmack}</td><td>${s.menge}</td><td>${Number(s.preis).toFixed(2)}</td></tr>`;
+        }
+        summaryHtml += `</tbody></table>`;
+      }
+      document.getElementById('weeklySummary').innerHTML = summaryHtml;
     }
 
     window.deleteOrder = async function(id) {
