@@ -485,5 +485,49 @@
     });
     window.onload = fetchProducts;
   </script>
+  <nav class="bottom-nav">
+    <a href="/index.html" class="nav-btn">
+      <span>🏠</span><br>Home
+    </a>
+    <a href="#" class="nav-btn" onclick="showCart()">
+      <span>🛒</span><br>Warenkorb
+    </a>
+    <a href="/admin.html" class="nav-btn">
+      <span>👤</span><br>Admin
+    </a>
+  </nav>
 </body>
+    .bottom-nav {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      height: 62px;
+      background: #fff;
+      border-top: 1.5px solid #ececec;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
+    }
+    .nav-btn {
+      flex: 1;
+      text-align: center;
+      color: #222;
+      font-size: 1.15em;
+      text-decoration: none;
+      padding: 0.5em 0 0.2em 0;
+      font-weight: 500;
+      transition: color .15s;
+      border: none;
+      background: none;
+    }
+    .nav-btn:active, .nav-btn:focus {
+      color: #e10c18;
+    }
+    .nav-btn span {
+      font-size: 1.5em;
+      display: block;
+      margin-bottom: 2px;
+    }
+    body { padding-bottom: 70px; }
 </html>
