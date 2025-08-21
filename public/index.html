@@ -11,7 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     html, body { margin:0; padding:0; background:#fff; color:#222; font-family: Arial, sans-serif; min-height:100vh; width:100vw; overflow-x:hidden;}
-    .header-center { display: flex; flex-direction: column; align-items: center; margin-top: 10px; margin-bottom: 8px;}
+    .header-center { display: flex; flex-direction: column; align-items: center; margin-top: 10px; margin-bottom: 8px; padding-top: 74px;}
   .main-logo { width: 220px; height:auto; margin-bottom:12px;}
     .lang-switch { display:flex; gap:11px; justify-content:center; margin: 0 0 5px 0;}
     .lang-btn { background:none; border:none; cursor:pointer; outline:none; opacity:.82; }
@@ -95,20 +95,22 @@
     @media (min-width:701px){
       .main, .product-grid, .product-card, .detail-page, .cart-page { max-width:520px; width:100%; margin:0 auto;}
     }
-  /* Neue Bottom-Navigation */
-  .bottom-nav {
+  /* Neue Top-Navigation */
+  .top-nav {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 0;
+    top: 0;
+    bottom: auto;
     height: 60px;
     background: #fff;
-    border-top: 1.5px solid #ececec;
+    border-bottom: 1.5px solid #ececec;
+    border-top: none;
     display: flex;
     justify-content: space-around;
     align-items: center;
     z-index: 100;
-    box-shadow: 0 -2px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
   }
   .nav-btn {
     flex: 1 1 0;
@@ -142,11 +144,25 @@
     margin-bottom: -2px;
   }
   @media (min-width: 701px) {
-    .bottom-nav { max-width: 520px; left: 50%; transform: translateX(-50%); border-radius: 19px 19px 0 0; }
+    .top-nav { max-width: 520px; left: 50%; transform: translateX(-50%); border-radius: 0 0 19px 19px; }
   }
   </style>
 </head>
 <body>
+  <nav class="top-nav">
+    <a href="/index.html" class="nav-btn">
+      <span>🏠</span>
+      <span style="font-size:0.97em;">Home</span>
+    </a>
+    <a href="#" class="nav-btn" onclick="showCart();return false;">
+      <span>🛒</span>
+      <span style="font-size:0.97em;">Warenkorb</span>
+    </a>
+    <a href="/admin.html" class="nav-btn">
+      <span>👤</span>
+      <span style="font-size:0.97em;">Admin</span>
+    </a>
+  </nav>
   <div class="header-center">
   <img src="/assets/logo.png" class="main-logo" alt="EHCB Sponser Logo">
     <div class="lang-switch">
@@ -491,19 +507,5 @@
     window.onload = fetchProducts;
 </script>
 </script>
-<nav class="bottom-nav">
-  <a href="/index.html" class="nav-btn">
-    <span>🏠</span>
-    <span style="font-size:0.97em;">Home</span>
-  </a>
-  <a href="#" class="nav-btn" onclick="showCart();return false;">
-    <span>🛒</span>
-    <span style="font-size:0.97em;">Warenkorb</span>
-  </a>
-  <a href="/admin.html" class="nav-btn">
-    <span>👤</span>
-    <span style="font-size:0.97em;">Admin</span>
-  </a>
-</nav>
 </body>
 </html>
