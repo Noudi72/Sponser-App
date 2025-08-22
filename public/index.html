@@ -680,6 +680,11 @@
       document.getElementById('btn-fr').onclick = () => setLang('fr');
       document.getElementById('btn-en').onclick = () => setLang('en');
       setLang(lang);
+      // Sprach-Button Status initialisieren
+      document.querySelectorAll('.lang-text-btn').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      document.getElementById('btn-' + lang).classList.add('selected');
     });
     window.onload = fetchProducts;
 </script>
