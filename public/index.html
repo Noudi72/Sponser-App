@@ -66,20 +66,7 @@
       border-radius: 0;
       background: none;
     }
-    /* Hintergrundlogo */
-    .background-logo {
-      position: absolute;
-      top: 70px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 420px;
-      max-width: 90vw;
-      opacity: 0.07;
-      z-index: 0;
-      pointer-events: none;
-      filter: grayscale(100%);
-      user-select: none;
-    }
+  /* Hintergrundlogo entfernt */
     .order-title {
       display: none;
     }
@@ -336,124 +323,24 @@
     line-height: 1.15;
     box-shadow: 0 1px 4px rgba(0,0,0,0.07);
   }
-  @media (min-width: 701px) {
-    .top-nav {
-      max-width: 520px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-radius: 0 0 19px 19px;
-      padding-top: 24px;
+    @media (min-width: 701px) {
+      .top-nav {
+        max-width: 520px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 0 0 19px 19px;
+        padding-top: 24px;
+      }
+      .main-logo-colored {
+        width: 300px;
+        max-width: 380px;
+      }
+      .lang-switch-center {
+        padding-top: 24px;
+      }
     }
-    .main-logo-colored {
-      width: 300px;
-      max-width: 380px;
-    }
-    .background-logo {
-      width: 520px;
-    }
-    .lang-switch-center {
-      padding-top: 44px;
-    }
-  }
   </style>
-    /* Fix: Sprach-Buttons immer sichtbar und pillenförmig, Top-Navigation-Icons mittig */
-    .lang-switch-center {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      align-items: center;
-      margin: 0 auto 0 auto;
-      position: relative;
-      z-index: 2;
-      padding-top: 0;
-    }
-    .lang-text-btn {
-      background: #f7f7f7;
-      border: none;
-      color: #555;
-      font-size: 1.09em;
-      font-weight: 500;
-      letter-spacing: 0.04em;
-      border-radius: 18px;
-      padding: 7px 22px;
-      cursor: pointer;
-      opacity: 0.84;
-      transition: color 0.13s, background 0.15s, opacity 0.13s;
-      outline: none;
-      box-shadow: none;
-      margin: 0 2px;
-    }
-    .lang-text-btn.selected,
-    .lang-text-btn:focus {
-      color: #e10c18;
-      background: #fff0f4;
-      opacity: 1;
-      box-shadow: 0 2px 8px rgba(225,12,24,0.08);
-    }
-    .main-logo-center {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0 auto 0 auto;
-      z-index: 9;
-    }
-    .main-logo-colored {
-      width: 220px;
-      max-width: 80vw;
-      height: auto;
-      display: block;
-      margin: 0 auto;
-      filter: none;
-      box-shadow: none;
-      border-radius: 0;
-      background: none;
-    }
-    .top-nav {
-      position: fixed;
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: auto;
-      height: 54px;
-      background: #fff;
-      border-bottom: 1px solid #ececec;
-      border-top: none;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 101;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      padding-top: 0;
-    }
-    .nav-btn {
-      flex: 1 1 0;
-      text-align: center;
-      font-size: 1.01em;
-      color: #e10c18;
-      background: none;
-      border: none;
-      outline: none;
-      text-decoration: none;
-      font-weight: 600;
-      letter-spacing: 0.01em;
-      padding: 0;
-      transition: background 0.15s, color 0.13s;
-      border-radius: 7px 7px 0 0;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-width: 0;
-    }
-    .nav-btn .fa-solid, .nav-btn .material-icons {
-      font-size: 1.7em;
-      display: block;
-      margin-bottom: 0px;
-      margin-top: 0px;
-      line-height: 1;
-      vertical-align: middle;
-    }
+
 </head>
 <body>
   <nav class="top-nav">
@@ -695,59 +582,14 @@
             </div>
             <input type="number" min="1" max="99" value="${item.qty}" class="cart-qty" onchange="changeCartQty(${i},this.value)">
             <div class="cart-price">CHF ${Number(sum).toFixed(2)}</div>
-            <button class="cart-remove" onclick="removeCart(${i})" title="Entfernen"><i class="fa-solid fa-trash"></i></button>
+            <button class="cart-remove" onclick="removeCart(${i})">&times;</button>
           </div>
         `;
       }).join('');
       html += `<div class="cart-total">${txt[lang].cartTotal}: CHF ${Number(total).toFixed(2)}</div>
-        <button class="order-btn" onclick="checkout()">${txt[lang].orderNow}</button>
-      </div>`;
+        <button class="order-btn" onclick="checkout()">${txt[lang].orderNow}</button>`;
       document.getElementById('mainView').innerHTML = html;
       updateCartCount();
-    }
-    function changeCartQty(idx,val){
-      let qty = Math.max(1,Math.min(99,parseInt(val)||1));
-      cart[idx].qty = qty; showCart();
-    }
-    function removeCart(idx){ cart.splice(idx,1); showCart();}
-    function updateCartCount() {
-      let n = cart.reduce((sum,i)=>sum+i.qty,0);
-      document.getElementById('cartCount').innerText = n;
-      document.getElementById('cartCount').style.display = n>0?'':'none';
-    }
-
-    // Checkout und Bestellung absenden (inkl. Mail)
-    function checkout() {
-      let total = cart.reduce((sum,i)=>sum+((+i.preis)*(+i.qty)),0);
-      let html = `
-        <div class="cart-page">
-          <button class="back-btn" onclick="showCart()">${txt[lang].checkoutBack}</button>
-          <h3>${txt[lang].checkout}</h3>
-          <div style="margin-bottom:1em;">
-            <label style="font-weight:bold;">${txt[lang].name}</label>
-            <input id="orderName" type="text" style="width:100%;font-size:1.08em;padding:0.6em;" required>
-          </div>
-          <div style="margin-bottom:1em;">
-            <label style="font-weight:bold;">${txt[lang].email}</label>
-            <input id="orderEmail" type="email" style="width:100%;font-size:1.08em;padding:0.6em;" required>
-          </div>
-          <div style="margin:1.2em 0 0.6em 0;font-weight:500;font-size:1.1em;">${txt[lang].yourProducts}</div>
-          ${cart.map(item=>`
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6em 0;border-bottom:1px solid #eee;">
-              <div>
-                <div style="font-weight:bold">${item.produkt}</div>
-                ${item.variante?`<div style="color:#555">${item.variante}</div>`:""}
-                <div style="color:#999;font-size:0.98em;">CHF ${Number(item.preis).toFixed(2)} x ${item.qty}</div>
-              </div>
-              <div style="font-weight:bold;">CHF ${(Number(item.preis) * item.qty).toFixed(2)}</div>
-            </div>
-          `).join('')}
-          <div class="cart-total" style="margin:1.4em 0 0.8em 0;">${txt[lang].cartTotal}: CHF ${Number(total).toFixed(2)}</div>
-          <button class="order-btn" onclick="submitOrder()">${txt[lang].send}</button>
-        </div>
-        <div id="orderResult"></div>
-      `;
-      document.getElementById('mainView').innerHTML = html;
     }
 
     async function submitOrder() {
