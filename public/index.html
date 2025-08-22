@@ -14,49 +14,47 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     html, body { margin:0; padding:0; background:#fff; color:#222; font-family: Arial, sans-serif; min-height:100vh; width:100vw; overflow-x:hidden;}
-    /* Zentrierte Sprachumschaltung */
     .lang-switch-center {
       display: flex;
       justify-content: center;
-      gap: 1rem;
+      align-items: center;
+      gap: 1.1rem;
       margin: 0 auto;
-      margin-bottom: 1.5rem;
-      margin-top: 0.5rem;
-      position: relative;
-      z-index: 20;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      margin-top: 80px;
+      margin-bottom: 24px;
+      z-index: 22;
     }
     .lang-text-btn {
-      border-radius: 999px;
-      padding: 0.6rem 2.2rem;
-      font-size: 1.15rem;
+      border-radius: 24px;
+      padding: 0.6em 1.7em;
+      font-size: 1.08rem;
       font-weight: 600;
       background: #fff;
       color: #b71c1c;
       border: 2px solid #b71c1c;
-      box-shadow: 0 2px 8px rgba(183,28,28,0.10);
+      box-shadow: 0 2px 8px rgba(183,28,28,0.09);
       opacity: 1;
-      transition: all 0.2s;
-      position: relative;
-      z-index: 21;
+      transition: all 0.18s;
       cursor: pointer;
+      outline: none;
     }
     .lang-text-btn.selected {
       background: #b71c1c;
       color: #fff;
       border: 2px solid #b71c1c;
-      box-shadow: 0 4px 16px rgba(183,28,28,0.18);
-      opacity: 1;
     }
     .lang-text-btn:not(.selected):hover {
       background: #e57373;
       color: #fff;
       border: 2px solid #e57373;
-      opacity: 1;
     }
     .lang-text-btn:focus {
       outline: none;
       box-shadow: 0 0 0 2px #b71c1c33;
+    }
+    @media (min-width:701px){
+      .main-logo-colored { max-width: 300px !important; }
+      .lang-switch-center { margin-top: 80px; }
     }
   /* Hintergrundlogo entfernt */
     .order-title {
@@ -258,6 +256,7 @@
     box-shadow: 0 4px 18px rgba(0,0,0,0.08);
     padding-top: 0;
     border-radius: 0 0 18px 18px;
+    margin-top: 22px;
   }
   .nav-btn {
     flex: 1 1 0;
@@ -389,15 +388,13 @@
       <span class="label">Admin</span>
     </a>
   </nav>
-  <div style="width:100%;display:flex;justify-content:center;align-items:center;margin-top:18px;margin-bottom:8px;">
-    <div class="lang-switch-center">
-      <button class="lang-text-btn" id="btn-de" type="button">DE</button>
-      <button class="lang-text-btn" id="btn-fr" type="button">FR</button>
-      <button class="lang-text-btn" id="btn-en" type="button">EN</button>
-    </div>
+  <div class="lang-switch-center" style="margin-top:80px; margin-bottom:24px;">
+    <button class="lang-text-btn" id="btn-de" type="button">DE</button>
+    <button class="lang-text-btn" id="btn-fr" type="button">FR</button>
+    <button class="lang-text-btn" id="btn-en" type="button">EN</button>
   </div>
-  <div class="main-logo-center">
-    <img src="/assets/logo.png" class="main-logo-colored" alt="EHCB Sponser Logo">
+  <div class="main-logo-center" style="display: flex; justify-content: center; margin-bottom: 26px;">
+    <img src="/assets/logo.png" class="main-logo-colored" alt="EHCB Sponser Logo" style="max-width:220px; width:100%;">
   </div>
   <div class="main" id="mainView"></div>
 
