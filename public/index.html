@@ -399,6 +399,33 @@
   <div class="main" id="mainView"></div>
 
   <script>
+    // --- Fehlerkorrektur: updateCartCount & checkout als globale Funktionen bereitstellen ---
+    function updateCartCount() {
+      // Ermittle die aktuelle Warenkorbanzahl und aktualisiere das Badge
+      const count = cart.reduce((acc, item) => acc + (item.qty || 1), 0);
+      const el = document.getElementById('cartCount');
+      if (el) {
+        el.textContent = count > 0 ? count : "";
+        el.style.display = count > 0 ? "inline-block" : "none";
+      }
+    }
+
+    function checkout() {
+      // Zeige die Checkout-Seite (Bestellformular)
+      let html = `<div class="cart-page"><button class="back-btn" onclick="showHome()">${txt[lang].cartBack}</button>`;
+      html += `<form onsubmit="submitOrder();return false;">`;
+      html += `<label>${txt[lang].name}</label><input id="orderName" type="text" style="width:100%;margin-bottom:9px;padding:8px 8px;border-radius:8px;border:1.2px solid #bbb;"><br>`;
+      html += `<label>${txt[lang].email}</label><input id="orderEmail" type="email" style="width:100%;margin-bottom:9px;padding:8px 8px;border-radius:8px;border:1.2px solid #bbb;"><br>`;
+      html += `<div style="font-weight:bold;margin-bottom:7px;">${txt[lang].yourProducts}</div>`;
+      html += cart.map(item =>
+        `<div style="margin-bottom:2px;">${item.produkt} ${item.variante ? "(" + item.variante + ")" : ""} – CHF ${(Number(item.preis) * Number(item.qty)).toFixed(2)} × ${item.qty}</div>`
+      ).join("");
+      html += `<div class="cart-total" style="margin-top:14px;">${txt[lang].cartTotal}: CHF ${cart.reduce((acc, item) => acc + Number(item.preis) * Number(item.qty), 0).toFixed(2)}</div>`;
+      html += `<div id="orderResult" style="margin-top:10px;"></div>`;
+      html += `<button class="order-btn" style="margin-top:17px;" type="submit">${txt[lang].send}</button>`;
+      html += `</form></div>`;
+      document.getElementById('mainView').innerHTML = html;
+    }
     // --------- SUPABASE INITIALISIEREN ---------
     const supabaseUrl = 'https://sqlnoaaimkrxrkspqtbq.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxbG5vYWFpbWtyeHJrc3BxdGJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NzgyMzAsImV4cCI6MjA3MTI1NDIzMH0.oI201Oqgc2M3ckXePjZAHty1hXVC8M8qptjz8r9QUG4';
