@@ -17,23 +17,23 @@
     /* Zentrierte Sprachumschaltung */
     .lang-switch-center {
       display: flex;
-      gap: 18px;
+      gap: 12px;
       justify-content: center;
       align-items: center;
-      margin: 0 auto 16px auto;
+      margin: 0 auto 0 auto;
       position: relative;
       z-index: 10;
-      padding-top: 32px;
+      padding-top: 0;
     }
     .lang-text-btn {
-      background: none;
+      background: #f7f7f7;
       border: none;
       color: #555;
       font-size: 1.09em;
       font-weight: 500;
       letter-spacing: 0.04em;
-      border-radius: 7px;
-      padding: 5px 18px;
+      border-radius: 18px;
+      padding: 7px 22px;
       cursor: pointer;
       opacity: 0.84;
       transition: color 0.13s, background 0.15s, opacity 0.13s;
@@ -46,23 +46,24 @@
       color: #e10c18;
       background: #fff0f4;
       opacity: 1;
+      box-shadow: 0 2px 8px rgba(225,12,24,0.08);
     }
     .main-logo-center {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: 0 auto 16px auto;
+      margin: 0 auto 0 auto;
       z-index: 9;
     }
     .main-logo-colored {
-      width: 240px;
+      width: 220px;
       max-width: 80vw;
       height: auto;
       display: block;
       margin: 0 auto;
       filter: none;
-      box-shadow: 0 2px 12px rgba(225,12,24,0.08);
-      border-radius: 10px;
+      box-shadow: none;
+      border-radius: 0;
       background: none;
     }
     /* Hintergrundlogo */
@@ -267,16 +268,16 @@
     right: 0;
     top: 0;
     bottom: auto;
-    height: 66px;
+    height: 54px;
     background: #fff;
-    border-bottom: 1.5px solid #ececec;
+    border-bottom: 1px solid #ececec;
     border-top: none;
     display: flex;
     justify-content: space-around;
     align-items: center;
     z-index: 101;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    padding-top: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding-top: 0;
   }
   .nav-btn {
     flex: 1 1 0;
@@ -374,10 +375,8 @@
       <span class="label">Admin</span>
     </a>
   </nav>
-  <!-- Hintergrundlogo -->
-  <img src="/assets/logo.png" alt="Logo" class="background-logo" aria-hidden="true" />
-  <div style="display: flex; flex-direction: column; align-items: center; margin-top: 36px;">
-    <div class="lang-switch-center" style="margin-bottom: 22px; padding-top: 0;">
+  <div style="display: flex; flex-direction: column; align-items: center; margin-top: 12px;">
+    <div class="lang-switch-center" style="margin-bottom: 8px; padding-top: 0;">
       <button class="lang-text-btn" id="btn-de">DE</button>
       <button class="lang-text-btn" id="btn-fr">FR</button>
       <button class="lang-text-btn" id="btn-en">EN</button>
