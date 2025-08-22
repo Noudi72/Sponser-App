@@ -83,6 +83,7 @@
 
     let ordersData = [];
     async function loadOrders() {
+      document.getElementById('exportPDF').disabled = true;
       const { data, error } = await supabase
         .from('bestellungen')
         .select('*')
@@ -91,7 +92,8 @@
         document.getElementById('ordersTable').innerHTML = '<div class="alert alert-danger">Fehler beim Laden der Bestellungen!</div>';
         return;
       }
-      ordersData = data;
+  ordersData = data;
+  document.getElementById('exportPDF').disabled = false;
       let html = `<table class="table table-bordered table-striped"><thead><tr><th>ID</th><th>Name</th><th>Produkte</th><th>Datum</th><th>Löschen</th></tr></thead><tbody>`;
       for (const order of data) {
         let produkte = '';
@@ -200,6 +202,10 @@
     };
 
     document.getElementById('exportPDF').onclick = async function() {
+      if (!ordersData || ordersData.length === 0) {
+        alert('Keine Bestellungen zum Export vorhanden!');
+        return;
+      }
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       // Logo schön einfügen: mittig, ca. 80px breit, Höhe automatisch
@@ -223,7 +229,7 @@
         doc.addImage(imgData, 'PNG', logoX, 8, logoWidth, logoHeight);
       }
       doc.setFontSize(16);
-      doc.text('Bestellübersicht', pageWidth/2, 20 + logoHeight, {align:'center'});
+      doc.text('Bestellübersicht', 297/2, 20 + 36, {align:'center'});
       doc.setFontSize(11);
       let startY = 32 + 36;
       // Tabellenkopf
