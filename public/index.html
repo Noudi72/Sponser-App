@@ -639,6 +639,7 @@
         `;
       }).join('');
       html += `<div class="cart-total">${txt[lang].cartTotal}: CHF ${Number(total).toFixed(2)}</div>
+        <div class="cart-payment-hint" style="margin:12px 0 18px 0; color:#b71c1c; font-size:1.08em; text-align:center; font-weight:500;">Zahlbar per Twint bei Erhalt der Ware</div>
         <button class="order-btn" onclick="checkout()">${txt[lang].orderNow}</button>`;
       document.getElementById('mainView').innerHTML = html;
       updateCartCount();

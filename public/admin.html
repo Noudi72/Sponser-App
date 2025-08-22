@@ -221,10 +221,20 @@
         });
       } catch(e) {}
       if (imgData) {
-        // Seitenbreite: 297mm (A4 landscape), Logo soll zentriert sein
-        const logoWidth = 80; // in mm
-        const logoHeight = 36; // oder ca. 1:2 Verhältnis
+        // Seitenbreite: 297mm (A4 landscape), Logo soll zentriert und proportional sein
         const pageWidth = 297;
+        const maxLogoWidth = 80; // maximal 80mm breit
+        const maxLogoHeight = 36; // maximal 36mm hoch
+        // Bild laden, um echtes Seitenverhältnis zu bekommen
+        const img = new Image();
+        img.src = imgData;
+        await new Promise(resolve => { img.onload = resolve; });
+        let logoWidth = maxLogoWidth;
+        let logoHeight = img.height / img.width * logoWidth;
+        if (logoHeight > maxLogoHeight) {
+          logoHeight = maxLogoHeight;
+          logoWidth = img.width / img.height * logoHeight;
+        }
         const logoX = (pageWidth - logoWidth) / 2;
         doc.addImage(imgData, 'PNG', logoX, 8, logoWidth, logoHeight);
       }
