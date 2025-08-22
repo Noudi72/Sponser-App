@@ -588,6 +588,10 @@
     }
 
     // Warenkorb
+    function removeCart(idx) {
+      cart.splice(idx, 1);
+      showCart();
+    }
     function addToCart() {
       let qty = +document.getElementById('detailQty').value || 1;
       let prod = selectedProduct;

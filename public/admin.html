@@ -53,9 +53,25 @@
           reader.readAsDataURL(blob);
         });
       } catch(e) {}
-      if (imgData) doc.addImage(imgData, 'PNG', 10, 8, 40, 18);
-  doc.setFontSize(16);
-  doc.text('Bestellung EHCB Spirit U18-Elit', 55, 20);
+      if (imgData) {
+        // Seitenbreite: 297mm (A4 landscape), Logo soll zentriert und proportional sein
+        const pageWidth = 297;
+        const maxLogoWidth = 80; // maximal 80mm breit
+        const maxLogoHeight = 36; // maximal 36mm hoch
+        const img = new Image();
+        img.src = imgData;
+        await new Promise(resolve => { img.onload = resolve; });
+        let logoWidth = maxLogoWidth;
+        let logoHeight = img.height / img.width * logoWidth;
+        if (logoHeight > maxLogoHeight) {
+          logoHeight = maxLogoHeight;
+          logoWidth = img.width / img.height * logoHeight;
+        }
+        const logoX = (pageWidth - logoWidth) / 2;
+        doc.addImage(imgData, 'PNG', logoX, 8, logoWidth, logoHeight);
+      }
+      doc.setFontSize(16);
+      doc.text('Bestellung EHCB Spirit U18-Elit', 297/2, 20 + 36, {align:'center'});
       doc.setFontSize(11);
       let startY = 32;
       // Tabellenkopf
@@ -132,14 +148,21 @@
       if (Object.keys(summaryMap).length === 0) {
         summaryHtml += `<div class='text-muted'>Keine Bestellungen in den letzten 7 Tagen.</div>`;
       } else {
-        summaryHtml += `<table class='table table-sm table-bordered'><thead><tr><th>Produkt</th><th>Geschmack</th><th>Menge</th><th>Preis (CHF)</th></tr></thead><tbody>`;
+        summaryHtml += `<table class='table table-sm table-bordered'><thead><tr><th>Produkt</th><th>Geschmack</th><th>Menge</th><th>Preis (CHF)</th><th>Löschen</th></tr></thead><tbody>`;
         for (const key in summaryMap) {
           const s = summaryMap[key];
-          summaryHtml += `<tr><td>${s.produkt}</td><td>${s.geschmack}</td><td>${s.menge}</td><td>${Number(s.preis).toFixed(2)}</td></tr>`;
+          summaryHtml += `<tr><td>${s.produkt}</td><td>${s.geschmack}</td><td>${s.menge}</td><td>${Number(s.preis).toFixed(2)}</td><td><button class='btn btn-sm btn-danger' onclick='deleteWeeklyOrder("${s.produkt}","${s.geschmack}",${s.preis})'>Löschen</button></td></tr>`;
           weeklySummaryData.push([s.produkt, s.geschmack, s.menge, Number(s.preis).toFixed(2)]);
         }
         summaryHtml += `</tbody></table>`;
       }
+    // Löschen-Funktion für wöchentliche Zusammenfassung
+    window.deleteWeeklyOrder = async function(produkt, geschmack, preis) {
+      if (!confirm('Alle Bestellungen dieses Produkts/Geschmacks wirklich löschen?')) return;
+      const { error } = await supabase.from('bestellungen').delete().eq('produkte', JSON.stringify([{produkt, geschmack, preis}]))
+      if (error) alert('Fehler beim Löschen!');
+      else loadOrders();
+    }
       document.getElementById('weeklySummary').innerHTML = summaryHtml;
     document.getElementById('exportSummaryExcel').onclick = function() {
       if (!weeklySummaryData.length) return alert('Keine Bestellungen in den letzten 7 Tagen.');
