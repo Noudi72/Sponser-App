@@ -118,8 +118,8 @@
     .back-btn { background:#eee;border:none;color:#333;padding:0.5em 1.5em;border-radius:10px;cursor:pointer;margin-bottom:1.1em;}
     .top-nav {
       position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 0;
+      right: 0;
       top: 0;
       bottom: auto;
       height: 62px;
@@ -127,14 +127,13 @@
       border-bottom: 1.5px solid #ececec;
       border-top: none;
       display: flex;
-      justify-content: center;
+      justify-content: space-around;
       align-items: center;
       z-index: 101;
       box-shadow: 0 4px 18px rgba(0,0,0,0.08);
       padding-top: 0;
       border-radius: 0 0 18px 18px;
-      gap: 2.2rem;
-      max-width: 420px;
+      gap: 0;
       width: 100vw;
       margin: 0 auto;
       padding-bottom: 18px;
@@ -358,11 +357,13 @@
   }
     @media (min-width: 701px) {
       .top-nav {
-        max-width: 520px;
+        max-width: 420px;
         left: 50%;
         transform: translateX(-50%);
         border-radius: 0 0 19px 19px;
         padding-top: 24px;
+        justify-content: center;
+        gap: 2.2rem;
       }
       .main-logo-colored {
         width: 300px;
