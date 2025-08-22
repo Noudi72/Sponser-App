@@ -357,7 +357,7 @@
   </style>
 </head>
 <body>
-  <nav class="top-nav">
+  <nav class="top-nav" style="margin-top: 24px;">
     <a href="/index.html" class="nav-btn">
       <i class="fa-solid fa-house"></i>
       <span class="label">Home</span>
@@ -376,13 +376,15 @@
   </nav>
   <!-- Hintergrundlogo -->
   <img src="/assets/logo.png" alt="Logo" class="background-logo" aria-hidden="true" />
-  <div class="lang-switch-center">
-    <button class="lang-text-btn" id="btn-de">DE</button>
-    <button class="lang-text-btn" id="btn-fr">FR</button>
-    <button class="lang-text-btn" id="btn-en">EN</button>
-  </div>
-  <div class="main-logo-center">
-    <img src="/assets/logo.png" class="main-logo-colored" alt="EHCB Sponser Logo">
+  <div style="display: flex; flex-direction: column; align-items: center; margin-top: 36px;">
+    <div class="lang-switch-center" style="margin-bottom: 22px; padding-top: 0;">
+      <button class="lang-text-btn" id="btn-de">DE</button>
+      <button class="lang-text-btn" id="btn-fr">FR</button>
+      <button class="lang-text-btn" id="btn-en">EN</button>
+    </div>
+    <div class="main-logo-center">
+      <img src="/assets/logo.png" class="main-logo-colored" alt="EHCB Sponser Logo">
+    </div>
   </div>
   <div class="main" id="mainView"></div>
 
