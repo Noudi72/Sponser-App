@@ -202,7 +202,7 @@
     document.getElementById('exportPDF').onclick = async function() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-      // Logo einfügen
+      // Logo schön einfügen: mittig, ca. 80px breit, Höhe automatisch
       const logoUrl = '/assets/logo.png';
       let imgData = null;
       try {
@@ -214,11 +214,18 @@
           reader.readAsDataURL(blob);
         });
       } catch(e) {}
-      if (imgData) doc.addImage(imgData, 'PNG', 10, 8, 40, 18);
+      if (imgData) {
+        // Seitenbreite: 297mm (A4 landscape), Logo soll zentriert sein
+        const logoWidth = 80; // in mm
+        const logoHeight = 36; // oder ca. 1:2 Verhältnis
+        const pageWidth = 297;
+        const logoX = (pageWidth - logoWidth) / 2;
+        doc.addImage(imgData, 'PNG', logoX, 8, logoWidth, logoHeight);
+      }
       doc.setFontSize(16);
-      doc.text('Bestellübersicht', 55, 20);
+      doc.text('Bestellübersicht', pageWidth/2, 20 + logoHeight, {align:'center'});
       doc.setFontSize(11);
-      let startY = 32;
+      let startY = 32 + 36;
       // Tabellenkopf
       doc.setFont('helvetica', 'bold');
       doc.text('ID', 10, startY);
@@ -240,7 +247,24 @@
         doc.text(produkte, 70, startY, { maxWidth: 170 });
         doc.text(new Date(order.timestamp).toLocaleString(), 250, startY);
         startY += 8;
-        if (startY > 190) { doc.addPage(); if (imgData) doc.addImage(imgData, 'PNG', 10, 8, 40, 18); startY = 32; }
+        if (startY > 190) { 
+          doc.addPage(); 
+          if (imgData) {
+            const logoWidth = 80;
+            const logoHeight = 36;
+            const pageWidth = 297;
+            const logoX = (pageWidth - logoWidth) / 2;
+            doc.addImage(imgData, 'PNG', logoX, 8, logoWidth, logoHeight);
+          }
+          startY = 32 + 36; 
+          doc.setFont('helvetica', 'bold');
+          doc.text('ID', 10, startY);
+          doc.text('Name', 30, startY);
+          doc.text('Produkte', 70, startY);
+          doc.text('Datum', 250, startY);
+          doc.setFont('helvetica', 'normal');
+          startY += 8;
+        }
       }
       doc.save('bestellungen.pdf');
     };
