@@ -356,9 +356,107 @@
     }
   }
   </style>
+    /* Fix: Sprach-Buttons immer sichtbar und pillenförmig, Top-Navigation-Icons mittig */
+    .lang-switch-center {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 0 auto;
+      position: relative;
+      z-index: 2;
+      padding-top: 0;
+    }
+    .lang-text-btn {
+      background: #f7f7f7;
+      border: none;
+      color: #555;
+      font-size: 1.09em;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      border-radius: 18px;
+      padding: 7px 22px;
+      cursor: pointer;
+      opacity: 0.84;
+      transition: color 0.13s, background 0.15s, opacity 0.13s;
+      outline: none;
+      box-shadow: none;
+      margin: 0 2px;
+    }
+    .lang-text-btn.selected,
+    .lang-text-btn:focus {
+      color: #e10c18;
+      background: #fff0f4;
+      opacity: 1;
+      box-shadow: 0 2px 8px rgba(225,12,24,0.08);
+    }
+    .main-logo-center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 0 auto;
+      z-index: 9;
+    }
+    .main-logo-colored {
+      width: 220px;
+      max-width: 80vw;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      filter: none;
+      box-shadow: none;
+      border-radius: 0;
+      background: none;
+    }
+    .top-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: auto;
+      height: 54px;
+      background: #fff;
+      border-bottom: 1px solid #ececec;
+      border-top: none;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 101;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      padding-top: 0;
+    }
+    .nav-btn {
+      flex: 1 1 0;
+      text-align: center;
+      font-size: 1.01em;
+      color: #e10c18;
+      background: none;
+      border: none;
+      outline: none;
+      text-decoration: none;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      padding: 0;
+      transition: background 0.15s, color 0.13s;
+      border-radius: 7px 7px 0 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+    }
+    .nav-btn .fa-solid, .nav-btn .material-icons {
+      font-size: 1.7em;
+      display: block;
+      margin-bottom: 0px;
+      margin-top: 0px;
+      line-height: 1;
+      vertical-align: middle;
+    }
 </head>
 <body>
-  <nav class="top-nav" style="margin-top: 24px;">
+  <nav class="top-nav">
     <a href="/index.html" class="nav-btn">
       <i class="fa-solid fa-house"></i>
       <span class="label">Home</span>
@@ -376,10 +474,10 @@
     </a>
   </nav>
   <div style="display: flex; flex-direction: column; align-items: center; margin-top: 12px;">
-    <div class="lang-switch-center" style="margin-bottom: 8px; padding-top: 0;">
-      <button class="lang-text-btn" id="btn-de">DE</button>
-      <button class="lang-text-btn" id="btn-fr">FR</button>
-      <button class="lang-text-btn" id="btn-en">EN</button>
+    <div class="lang-switch-center" style="margin-bottom: 8px; padding-top: 0; position:relative; z-index:2;">
+      <button class="lang-text-btn" id="btn-de" type="button">DE</button>
+      <button class="lang-text-btn" id="btn-fr" type="button">FR</button>
+      <button class="lang-text-btn" id="btn-en" type="button">EN</button>
     </div>
     <div class="main-logo-center">
       <img src="/assets/logo.png" class="main-logo-colored" alt="EHCB Sponser Logo">
