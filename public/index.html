@@ -14,26 +14,56 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     html, body { margin:0; padding:0; background:#fff; color:#222; font-family: Arial, sans-serif; min-height:100vh; width:100vw; overflow-x:hidden;}
-    .header-center {
+    /* Zentrierte Sprachumschaltung */
+    .lang-switch-center {
       display: flex;
-      flex-direction: column;
+      gap: 18px;
+      justify-content: center;
       align-items: center;
-      margin-top: 32px;
-      margin-bottom: 8px;
-      padding-top: 74px;
+      margin: 0 auto 16px auto;
       position: relative;
-      z-index: 2;
+      z-index: 10;
+      padding-top: 32px;
     }
-    .main-logo {
-      width: 220px;
-      height: auto;
-      margin-bottom: 12px;
-      display: block;
-      box-shadow: none;
+    .lang-text-btn {
       background: none;
-      border-radius: 0;
-      z-index: 2;
-      position: relative;
+      border: none;
+      color: #555;
+      font-size: 1.09em;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      border-radius: 7px;
+      padding: 5px 18px;
+      cursor: pointer;
+      opacity: 0.84;
+      transition: color 0.13s, background 0.15s, opacity 0.13s;
+      outline: none;
+      box-shadow: none;
+      margin: 0 2px;
+    }
+    .lang-text-btn.selected,
+    .lang-text-btn:focus {
+      color: #e10c18;
+      background: #fff0f4;
+      opacity: 1;
+    }
+    .main-logo-center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 16px auto;
+      z-index: 9;
+    }
+    .main-logo-colored {
+      width: 240px;
+      max-width: 80vw;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      filter: none;
+      box-shadow: 0 2px 12px rgba(225,12,24,0.08);
+      border-radius: 10px;
+      background: none;
     }
     /* Hintergrundlogo */
     .background-logo {
@@ -49,51 +79,7 @@
       filter: grayscale(100%);
       user-select: none;
     }
-    .lang-switch {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-      margin: 0 12px 5px 0;
-      position: absolute;
-      top: 0;
-      right: 0;
-      z-index: 3;
-    }
-    .lang-btn {
-      background: none;
-      border: 1px solid #e2e2e2;
-      cursor: pointer;
-      outline: none;
-      opacity: .82;
-      border-radius: 7px;
-      padding: 1px 3px;
-      height: 28px;
-      width: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: border-color 0.13s, opacity 0.13s;
-      font-size: 0;
-    }
-    .lang-btn.selected, .lang-btn:focus {
-      opacity: 1;
-      border: 2px solid #e10c18;
-    }
-    .lang-flag {
-      height: 18px;
-      width: 24px;
-      border-radius: 5px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-      display: block;
-    }
     .order-title {
-      font-size: 1.22em;
-      font-weight: bold;
-      letter-spacing: 0.5px;
-      color: #e10c18;
-      margin-bottom: 10px;
-      margin-top: 2px;
-      text-align: center;
       display: none;
     }
     .main-cart { font-size: 2.1em; margin: 0; cursor: pointer; color: #e10c18; display: flex; align-items: center; justify-content: center; position: relative;}
@@ -281,7 +267,7 @@
     right: 0;
     top: 0;
     bottom: auto;
-    height: 60px;
+    height: 66px;
     background: #fff;
     border-bottom: 1.5px solid #ececec;
     border-top: none;
@@ -289,7 +275,8 @@
     justify-content: space-around;
     align-items: center;
     z-index: 101;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding-top: 10px;
   }
   .nav-btn {
     flex: 1 1 0;
@@ -349,15 +336,30 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.07);
   }
   @media (min-width: 701px) {
-    .top-nav { max-width: 520px; left: 50%; transform: translateX(-50%); border-radius: 0 0 19px 19px; }
-    .background-logo { width: 520px; }
+    .top-nav {
+      max-width: 520px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 0 0 19px 19px;
+      padding-top: 24px;
+    }
+    .main-logo-colored {
+      width: 300px;
+      max-width: 380px;
+    }
+    .background-logo {
+      width: 520px;
+    }
+    .lang-switch-center {
+      padding-top: 44px;
+    }
   }
   </style>
 </head>
 <body>
   <nav class="top-nav">
     <a href="/index.html" class="nav-btn">
-      <span class="material-icons">home</span>
+      <i class="fa-solid fa-house"></i>
       <span class="label">Home</span>
     </a>
     <a href="#" class="nav-btn" onclick="showCart();return false;">
@@ -368,20 +370,19 @@
       <span class="label">Warenkorb</span>
     </a>
     <a href="/admin.html" class="nav-btn">
-      <span class="material-icons">person</span>
+      <i class="fa-solid fa-user"></i>
       <span class="label">Admin</span>
     </a>
   </nav>
   <!-- Hintergrundlogo -->
   <img src="/assets/logo.png" alt="Logo" class="background-logo" aria-hidden="true" />
-  <div class="header-center">
-    <img src="/assets/logo.png" class="main-logo" alt="EHCB Sponser Logo">
-    <div class="lang-switch">
-      <button class="lang-btn" id="btn-de"><img src="https://flagcdn.com/de.svg" class="lang-flag" alt="DE"></button>
-      <button class="lang-btn" id="btn-fr"><img src="https://flagcdn.com/fr.svg" class="lang-flag" alt="FR"></button>
-      <button class="lang-btn" id="btn-en"><img src="https://flagcdn.com/gb.svg" class="lang-flag" alt="EN"></button>
-    </div>
-    <div class="order-title" id="orderTitle"></div>
+  <div class="lang-switch-center">
+    <button class="lang-text-btn" id="btn-de">DE</button>
+    <button class="lang-text-btn" id="btn-fr">FR</button>
+    <button class="lang-text-btn" id="btn-en">EN</button>
+  </div>
+  <div class="main-logo-center">
+    <img src="/assets/logo.png" class="main-logo-colored" alt="EHCB Sponser Logo">
   </div>
   <div class="main" id="mainView"></div>
 
@@ -493,7 +494,6 @@
 
     // Home/Grid
     function showHome() {
-      document.getElementById('orderTitle').innerText = txt[lang].title;
       view = 'home';
       let html = '<div class="product-grid">';
       products.forEach((prod, idx) => {
@@ -698,7 +698,7 @@
       });
     }
 
-    // Sprachwahl-Buttons initialisieren
+    // Sprachwahl-Buttons initialisieren (jetzt als Text-Buttons)
     document.addEventListener("DOMContentLoaded", function() {
       document.getElementById('btn-de').onclick = () => setLang('de');
       document.getElementById('btn-fr').onclick = () => setLang('fr');
