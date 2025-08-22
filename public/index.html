@@ -249,8 +249,9 @@
     background: #fff;
     border-bottom: 1.5px solid #ececec;
     border-top: none;
-    display: flex;
-    justify-content: space-around;
+  display: flex;
+  justify-content: center;
+  gap: 2.2rem;
     align-items: center;
     z-index: 101;
     box-shadow: 0 4px 18px rgba(0,0,0,0.08);
@@ -259,7 +260,9 @@
     margin-top: 22px;
   }
   .nav-btn {
-    flex: 1 1 0;
+  flex: none;
+  max-width: 120px;
+  padding: 0 0.5rem;
     text-align: center;
     font-size: 1.05em;
     color: #e10c18;
@@ -365,6 +368,15 @@
       }
       .lang-switch-center {
         padding-top: 24px;
+      }
+    }
+    @media (max-width: 700px) {
+      .lang-switch-center {
+        margin-top: 98px;
+      }
+      .top-nav {
+        gap: 1.2rem;
+        max-width: 100vw;
       }
     }
   </style>
