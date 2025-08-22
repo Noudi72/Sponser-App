@@ -255,16 +255,53 @@
     right: 0;
     top: 0;
     bottom: auto;
-    height: 54px;
+    height: 62px;
     background: #fff;
-    border-bottom: 1px solid #ececec;
+    border-bottom: 1.5px solid #ececec;
     border-top: none;
     display: flex;
     justify-content: space-around;
     align-items: center;
     z-index: 101;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
     padding-top: 0;
+    border-radius: 0 0 18px 18px;
+  }
+  .nav-btn {
+    flex: 1 1 0;
+    text-align: center;
+    font-size: 1.05em;
+    color: #e10c18;
+    background: none;
+    border: none;
+    outline: none;
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 0;
+    transition: background 0.15s, color 0.13s;
+    border-radius: 7px 7px 0 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+  }
+  .nav-btn .fa-solid, .nav-btn .material-icons {
+  font-size: 2.1em;
+  display: block;
+  margin-bottom: 0px;
+  margin-top: 0px;
+  line-height: 1;
+  }
+  .nav-btn span.label {
+    font-size: 1em;
+    margin-top: 2px;
+    color: inherit;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
   }
   .nav-btn {
     flex: 1 1 0;
@@ -382,8 +419,8 @@
     let lang = localStorage.getItem('sponserlang') || 'de';
     function setLang(l) {
       lang = l; localStorage.setItem('sponserlang', l);
-      document.querySelectorAll('.lang-btn').forEach(btn=>btn.classList.remove('selected'));
-      document.getElementById('btn-'+l).classList.add('selected');
+    document.querySelectorAll('.lang-text-btn').forEach(btn=>btn.classList.remove('selected'));
+    document.getElementById('btn-'+l).classList.add('selected');
       showHome();
     }
     const txt = {
@@ -497,10 +534,8 @@
       document.getElementById('mainView').innerHTML = html;
       updateCartCount();
     }
-
     // Produkt-Detailansicht
     function showDetail(idx) {
-      view = 'detail'; selectedProduct = products[idx]; selectedProdIdx = idx;
       let prod = selectedProduct;
       let variants = (prod.variante || '').split(',').map(s=>s.trim()).filter(Boolean);
       selectedVariant = variants[0] || '';
