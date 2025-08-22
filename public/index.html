@@ -17,16 +17,6 @@
     /* Zentrierte Sprachumschaltung */
     .lang-switch-center {
       display: flex;
-      gap: 12px;
-      justify-content: center;
-      align-items: center;
-      margin: 0 auto 0 auto;
-      position: relative;
-      z-index: 10;
-      padding-top: 0;
-    }
-    .lang-text-btn {
-      display: flex;
       justify-content: center;
       gap: 1rem;
       margin: 0 auto;
@@ -35,8 +25,8 @@
       position: relative;
       z-index: 20;
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-      padding: 7px 22px;
-      cursor: pointer;
+    }
+    .lang-text-btn {
       border-radius: 999px;
       padding: 0.6rem 2.2rem;
       font-size: 1.15rem;
@@ -49,32 +39,24 @@
       transition: all 0.2s;
       position: relative;
       z-index: 21;
-      opacity: 1;
-      box-shadow: 0 2px 8px rgba(225,12,24,0.08);
+      cursor: pointer;
+    }
+    .lang-text-btn.selected {
       background: #b71c1c;
       color: #fff;
       border: 2px solid #b71c1c;
       box-shadow: 0 4px 16px rgba(183,28,28,0.18);
       opacity: 1;
-      align-items: center;
-      margin: 0 auto 0 auto;
+    }
+    .lang-text-btn:not(.selected):hover {
       background: #e57373;
       color: #fff;
       border: 2px solid #e57373;
       opacity: 1;
-      width: 220px;
-      .lang-switch-center .lang-text-btn:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px #b71c1c33;
-      }
-      max-width: 80vw;
-      height: auto;
-      display: block;
-      margin: 0 auto;
-      filter: none;
-      box-shadow: none;
-      border-radius: 0;
-      background: none;
+    }
+    .lang-text-btn:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #b71c1c33;
     }
   /* Hintergrundlogo entfernt */
     .order-title {
