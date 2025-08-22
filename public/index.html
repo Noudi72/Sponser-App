@@ -525,6 +525,7 @@
     }
     // Produkt-Detailansicht
     function showDetail(idx) {
+      selectedProduct = products[idx];
       let prod = selectedProduct;
       let variants = (prod.variante || '').split(',').map(s=>s.trim()).filter(Boolean);
       selectedVariant = variants[0] || '';
