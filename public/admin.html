@@ -36,6 +36,7 @@
             <option value="7">Letzte 7 Tage</option>
             <option value="14">Letzte 14 Tage</option>
             <option value="21">Letzte 21 Tage</option>
+            <option value="31">Letzte 31 Tage</option>
           </select>
         </div>
         <div class="ms-auto text-end">
@@ -51,7 +52,8 @@
   </div>
   <script>
     document.getElementById('exportSummaryPDF').onclick = async function() {
-      if (!weeklySummaryData.length) return alert('Keine Bestellungen in den letzten 7 Tagen.');
+      const selectedDaysForExport = Number(document.getElementById('summaryDays')?.value || 7);
+      if (!weeklySummaryData.length) return alert(`Keine Bestellungen in den letzten ${selectedDaysForExport} Tagen.`);
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       // Logo einfügen
@@ -226,7 +228,8 @@
         let produkte = '';
         try {
           const arr = typeof order.produkte === 'string' ? JSON.parse(order.produkte) : order.produkte;
-          produkte = arr.map(p => `${p.produkt} (${p.geschmack}) x${p.menge} – CHF ${Number(p.preis).toFixed(2)}`).join('; ');
+          // put each product on its own line in the cell
+          produkte = arr.map(p => `${p.produkt} (${p.geschmack}) x${p.menge} – CHF ${Number(p.preis).toFixed(2)}`).join('\n');
         } catch(e) {
           produkte = order.produkte;
         }
@@ -239,6 +242,18 @@
       }
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet(wsData);
+      // set a reasonable column width and enable wrap for the products cell where we use newlines
+      ws['!cols'] = [{ wch: 6 }, { wch: 20 }, { wch: 60 }, { wch: 20 }];
+      // Mark product cells so Excel shows line breaks (many clients honor '\n')
+      for (let r = 1; r <= ordersData.length; r++) {
+        const cellAddr = XLSX.utils.encode_cell({ c: 2, r }); // column C (index 2)
+        if (ws[cellAddr] && typeof ws[cellAddr].v === 'string' && ws[cellAddr].v.indexOf('\n') !== -1) {
+          // keep value as-is; some Excel clients will auto-wrap on \n
+          // attempt to set alignment (may not be supported in all environments)
+          ws[cellAddr].s = ws[cellAddr].s || {};
+          ws[cellAddr].s.alignment = Object.assign({}, ws[cellAddr].s.alignment, { wrapText: true });
+        }
+      }
       XLSX.utils.book_append_sheet(wb, ws, 'Bestellungen');
       XLSX.writeFile(wb, 'bestellungen.xlsx');
     };
