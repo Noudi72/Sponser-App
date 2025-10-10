@@ -244,16 +244,19 @@
       const ws = XLSX.utils.aoa_to_sheet(wsData);
       // set a reasonable column width and enable wrap for the products cell where we use newlines
       ws['!cols'] = [{ wch: 6 }, { wch: 20 }, { wch: 60 }, { wch: 20 }];
-      // Mark product cells so Excel shows line breaks (many clients honor '\n')
+      // Adjust row heights for cells that contain newlines so multiline content is visible
+      const rows = [];
       for (let r = 1; r <= ordersData.length; r++) {
         const cellAddr = XLSX.utils.encode_cell({ c: 2, r }); // column C (index 2)
+        let height = null;
         if (ws[cellAddr] && typeof ws[cellAddr].v === 'string' && ws[cellAddr].v.indexOf('\n') !== -1) {
-          // keep value as-is; some Excel clients will auto-wrap on \n
-          // attempt to set alignment (may not be supported in all environments)
-          ws[cellAddr].s = ws[cellAddr].s || {};
-          ws[cellAddr].s.alignment = Object.assign({}, ws[cellAddr].s.alignment, { wrapText: true });
+          const lines = ws[cellAddr].v.split('\n').length;
+          // approx row height: base 18 + 7 per extra line
+          height = Math.min(18 + (lines - 1) * 10, 120);
         }
+        rows[r] = height ? { hpt: height } : undefined;
       }
+      if (rows.length) ws['!rows'] = rows;
       XLSX.utils.book_append_sheet(wb, ws, 'Bestellungen');
       XLSX.writeFile(wb, 'bestellungen.xlsx');
     };
@@ -311,15 +314,25 @@
         let produkte = '';
         try {
           const arr = typeof order.produkte === 'string' ? JSON.parse(order.produkte) : order.produkte;
-          produkte = arr.map(p => `${p.produkt} (${p.geschmack}) x${p.menge} – CHF ${Number(p.preis).toFixed(2)}`).join('; ');
+          produkte = arr.map(p => `${p.produkt} (${p.geschmack}) x${p.menge} – CHF ${Number(p.preis).toFixed(2)}`);
         } catch(e) {
-          produkte = order.produkte;
+          produkte = [order.produkte];
         }
         doc.text(String(order.id), 10, startY);
         doc.text(String(order.name), 30, startY);
-        doc.text(produkte, 70, startY, { maxWidth: 170 });
+        // print products on multiple lines within the same table cell
+        const prodX = 70;
+        const prodMaxWidth = 170;
+        let prodY = startY;
+        for (const ptext of produkte) {
+          const split = doc.splitTextToSize(String(ptext), prodMaxWidth);
+          doc.text(split, prodX, prodY);
+          prodY += 6 * split.length;
+        }
+        // ensure timestamp is vertically aligned with the first product line
         doc.text(new Date(order.timestamp).toLocaleString(), 250, startY);
-        startY += 8;
+        // move startY to after the tallest cell (products area)
+        startY = Math.max(prodY, startY + 8);
         if (startY > 190) { 
           doc.addPage(); 
           if (imgData) {
