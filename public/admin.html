@@ -125,16 +125,28 @@
       }
   ordersData = data;
   document.getElementById('exportPDF').disabled = false;
-      let html = `<table class="table table-bordered table-striped"><thead><tr><th>ID</th><th>Name</th><th>Produkte</th><th>Datum</th><th>Löschen</th></tr></thead><tbody>`;
+      let html = `<table class="table table-bordered table-striped"><thead><tr><th>ID</th><th>Name</th><th>Produkte</th><th>Total (CHF)</th><th>Datum</th><th>Löschen</th></tr></thead><tbody>`;
       for (const order of data) {
         let produkte = '';
         try {
           const arr = typeof order.produkte === 'string' ? JSON.parse(order.produkte) : order.produkte;
           produkte = arr.map(p => `${p.produkt} (${p.geschmack}) x${p.menge} – CHF ${Number(p.preis).toFixed(2)}`).join('; ');
+          // compute total for the order
+          const totalSum = arr.reduce((s, p) => s + Number(p.preis) * Number(p.menge), 0);
         } catch(e) {
           produkte = order.produkte;
+          const totalSum = 0;
         }
-        html += `<tr><td>${order.id}</td><td>${order.name}</td><td>${produkte}</td><td>${new Date(order.timestamp).toLocaleString()}</td><td><button class='btn btn-sm btn-danger' onclick='deleteOrder(${order.id})'>Löschen</button></td></tr>`;
+        // if totalSum is not in scope (caught), compute from string fallback
+        let displayTotal = '';
+        try {
+          const arr2 = typeof order.produkte === 'string' ? JSON.parse(order.produkte) : order.produkte;
+          const total = arr2.reduce((s, p) => s + Number(p.preis) * Number(p.menge), 0);
+          displayTotal = `CHF ${total.toFixed(2)}`;
+        } catch(e) {
+          displayTotal = '';
+        }
+        html += `<tr><td>${order.id}</td><td>${order.name}</td><td>${produkte}</td><td>${displayTotal}</td><td>${new Date(order.timestamp).toLocaleString()}</td><td><button class='btn btn-sm btn-danger' onclick='deleteOrder(${order.id})'>Löschen</button></td></tr>`;
       }
       html += '</tbody></table>';
       document.getElementById('ordersTable').innerHTML = html;
@@ -222,7 +234,7 @@
 
     document.getElementById('exportExcel').onclick = function() {
       const wsData = [
-        ['ID', 'Name', 'Produkte', 'Datum']
+        ['ID', 'Name', 'Produkte', 'Total (CHF)', 'Datum']
       ];
       for (const order of ordersData) {
         let produkte = '';
@@ -230,13 +242,16 @@
           const arr = typeof order.produkte === 'string' ? JSON.parse(order.produkte) : order.produkte;
           // put each product on its own line in the cell
           produkte = arr.map(p => `${p.produkt} (${p.geschmack}) x${p.menge} – CHF ${Number(p.preis).toFixed(2)}`).join('\n');
+          var orderTotal = arr.reduce((s, p) => s + Number(p.preis) * Number(p.menge), 0);
         } catch(e) {
           produkte = order.produkte;
+          var orderTotal = '';
         }
         wsData.push([
           order.id,
           order.name,
           produkte,
+          orderTotal ? Number(orderTotal).toFixed(2) : '',
           new Date(order.timestamp).toLocaleString()
         ]);
       }
@@ -300,16 +315,17 @@
       }
       doc.setFontSize(16);
       doc.text('Bestellübersicht', 297/2, 20 + 36, {align:'center'});
-      doc.setFontSize(11);
-      let startY = 32 + 36;
-      // Tabellenkopf
-      doc.setFont('helvetica', 'bold');
-      doc.text('ID', 10, startY);
-      doc.text('Name', 30, startY);
-      doc.text('Produkte', 70, startY);
-      doc.text('Datum', 250, startY);
-      doc.setFont('helvetica', 'normal');
-      startY += 8;
+  doc.setFontSize(11);
+  let startY = 32 + 36;
+  // Tabellenkopf
+  doc.setFont('helvetica', 'bold');
+  doc.text('ID', 10, startY);
+  doc.text('Name', 30, startY);
+  doc.text('Produkte', 70, startY);
+  doc.text('Total (CHF)', 230, startY);
+  doc.text('Datum', 260, startY);
+  doc.setFont('helvetica', 'normal');
+  startY += 8;
       for (const order of ordersData) {
         let produkte = '';
         try {
@@ -318,8 +334,8 @@
         } catch(e) {
           produkte = [order.produkte];
         }
-        doc.text(String(order.id), 10, startY);
-        doc.text(String(order.name), 30, startY);
+  doc.text(String(order.id), 10, startY);
+  doc.text(String(order.name), 30, startY);
         // print products on multiple lines within the same table cell
         const prodX = 70;
         const prodMaxWidth = 170;
@@ -330,7 +346,11 @@
           prodY += 6 * split.length;
         }
         // ensure timestamp is vertically aligned with the first product line
-        doc.text(new Date(order.timestamp).toLocaleString(), 250, startY);
+        doc.text(new Date(order.timestamp).toLocaleString(), 260, startY);
+        // print total value next to products
+        if (orderTotal) {
+          doc.text(String(Number(orderTotal).toFixed(2)), 230, startY);
+        }
         // move startY to after the tallest cell (products area)
         startY = Math.max(prodY, startY + 8);
         if (startY > 190) { 
