@@ -29,7 +29,20 @@
         <button id="exportPDF" class="btn btn-danger">Export als PDF</button>
       </div>
       <div id="ordersTable"></div>
-  <div id="weeklySummary" class="mt-4"></div>
+      <div class="d-flex align-items-center gap-3 mt-4">
+        <div>
+          <label class="form-label mb-1">Zeitraum Zusammenfassung:</label>
+          <select id="summaryDays" class="form-select form-select-sm">
+            <option value="7">Letzte 7 Tage</option>
+            <option value="14">Letzte 14 Tage</option>
+            <option value="21">Letzte 21 Tage</option>
+          </select>
+        </div>
+        <div class="ms-auto text-end">
+          <small class="text-muted">Wähle Zeitraum für die Zusammenfassung und Exporte</small>
+        </div>
+      </div>
+      <div id="weeklySummary" class="mt-3"></div>
       <div class="mb-3">
   <button id="exportSummaryExcel" class="btn btn-success btn-sm">Zusammenfassung als Excel exportieren</button>
   <button id="exportSummaryPDF" class="btn btn-danger btn-sm ms-2">Zusammenfassung als PDF exportieren</button>
@@ -125,8 +138,10 @@
       document.getElementById('ordersTable').innerHTML = html;
 
       // Wöchentliche Zusammenfassung
-      const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-      const weeklyOrders = data.filter(order => new Date(order.timestamp).getTime() >= oneWeekAgo);
+  // determine timeframe from selector (default 7 days)
+  const selectedDays = Number(document.getElementById('summaryDays')?.value || 7);
+  const since = Date.now() - selectedDays * 24 * 60 * 60 * 1000;
+  const weeklyOrders = data.filter(order => new Date(order.timestamp).getTime() >= since);
       const summaryMap = {};
       weeklySummaryData = [];
       for (const order of weeklyOrders) {
@@ -144,9 +159,9 @@
           summaryMap[key].menge += Number(p.menge);
         }
       }
-      let summaryHtml = `<h4>Wöchentliche Zusammenfassung</h4>`;
+      let summaryHtml = `<h4>Zusammenfassung (${selectedDays} Tage)</h4>`;
       if (Object.keys(summaryMap).length === 0) {
-        summaryHtml += `<div class='text-muted'>Keine Bestellungen in den letzten 7 Tagen.</div>`;
+        summaryHtml += `<div class='text-muted'>Keine Bestellungen in den letzten ${selectedDays} Tagen.</div>`;
       } else {
         summaryHtml += `<table class='table table-sm table-bordered'><thead><tr><th>Produkt</th><th>Geschmack</th><th>Menge</th><th>Preis (CHF)</th><th>Löschen</th></tr></thead><tbody>`;
         for (const key in summaryMap) {
@@ -165,7 +180,7 @@
     }
       document.getElementById('weeklySummary').innerHTML = summaryHtml;
     document.getElementById('exportSummaryExcel').onclick = function() {
-      if (!weeklySummaryData.length) return alert('Keine Bestellungen in den letzten 7 Tagen.');
+      if (!weeklySummaryData.length) return alert(`Keine Bestellungen in den letzten ${selectedDays} Tagen.`);
       const wsData = [
         ['Produkt', 'Geschmack', 'Menge', 'Preis (CHF)'],
         ...weeklySummaryData
@@ -175,6 +190,10 @@
       XLSX.utils.book_append_sheet(wb, ws, 'Zusammenfassung');
       XLSX.writeFile(wb, 'woechentliche-zusammenfassung.xlsx');
     };
+    // re-generate summary when timeframe changes
+    document.getElementById('summaryDays').addEventListener('change', function() {
+      loadOrders();
+    });
     }
 
     window.deleteOrder = async function(id) {
