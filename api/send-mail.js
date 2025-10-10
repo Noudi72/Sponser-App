@@ -1,7 +1,7 @@
 // /api/send-mail.js
 import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Removed the instantiation of Resend
+// const resend = new Resend(process.env.RESEND_API_KEY);
 
 
 export default async (req, res) => {
@@ -44,8 +44,14 @@ export default async (req, res) => {
       <br><b>Total: CHF ${total.toFixed(2)}</b>
       <br><br>${t.outro}
     `;
+    if (!process.env.RESEND_API_KEY) {
+      console.error('[/api/send-mail] RESEND_API_KEY not set');
+      return res.status(500).json({ error: 'Mail service not configured (RESEND_API_KEY missing)' });
+    }
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const fromAddr = process.env.RESEND_FROM || 'onboarding@resend.dev';
     const response = await resend.emails.send({
-    from: 'onboarding@resend.dev',
+      from: fromAddr,
       to: [to, admin],
       subject: t.subject,
       html: htmlBody

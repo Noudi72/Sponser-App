@@ -2,12 +2,18 @@
 import { Resend } from 'resend';
 
 export default async function handler(req, res) {
+  console.log('[/api/send-order] called, method=', req.method);
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-  const { name, email, products } = req.body;
+  const { name, email, products } = req.body || {};
+  console.log('[/api/send-order] body sample:', { name, email, productsLength: products && products.length });
   if (!name || !email || !products) return res.status(400).json({ error: 'Missing fields' });
 
-  // API-Key aus Environment (Vercel Dashboard)
+  if (!process.env.RESEND_API_KEY) {
+    console.error('[/api/send-order] RESEND_API_KEY not set');
+    return res.status(500).json({ error: 'Mail service not configured (RESEND_API_KEY missing)' });
+  }
+
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   // E-Mail-HTML bauen
@@ -36,20 +42,24 @@ export default async function handler(req, res) {
 
   try {
     // Mail an Admin (dich)
-    await resend.emails.send({
-      from: 'onboarding@resend.dev', // oder eigene Domain, wenn freigeschaltet
+    const fromAddr = process.env.RESEND_FROM || 'onboarding@resend.dev';
+    console.log('[/api/send-order] using from address:', fromAddr);
+    const adminResp = await resend.emails.send({
+      from: fromAddr,
       to: 'n.guyaz@icloud.com',
       subject: `Neue Bestellung von ${name}`,
       html
     });
+    console.log('[/api/send-order] adminResp:', adminResp);
 
     // Mail an Besteller (Kopie)
-    await resend.emails.send({
-      from: 'onboarding@resend.dev',
+    const customerResp = await resend.emails.send({
+      from: fromAddr,
       to: email,
       subject: 'Deine Bestellung beim EHCB Sponser-Shop',
       html: `<p>Vielen Dank für deine Bestellung, ${name}!<br>Hier deine Übersicht:</p>` + html
     });
+    console.log('[/api/send-order] customerResp:', customerResp);
 
     return res.status(200).json({ success: true });
   } catch (e) {
