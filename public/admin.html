@@ -48,6 +48,7 @@
   <button id="exportSummaryExcel" class="btn btn-success btn-sm">Zusammenfassung als Excel exportieren</button>
   <button id="exportSummaryPDF" class="btn btn-danger btn-sm ms-2">Zusammenfassung als PDF exportieren</button>
       </div>
+    <div class="mb-2"><small class="text-muted">Hinweis: Wenn Excel Produkte nicht untereinander anzeigt, markiere die Spalte und aktiviere 'Wrap Text' (Zellen formatieren → Alignment → Wrap text).</small></div>
     </div>
   </div>
   <script>
@@ -150,6 +151,18 @@
       }
       html += '</tbody></table>';
       document.getElementById('ordersTable').innerHTML = html;
+      // compute and show total of displayed orders
+      try {
+        const visibleOrders = data;
+        const grandTotal = visibleOrders.reduce((s, o) => {
+          try {
+            const arr = typeof o.produkte === 'string' ? JSON.parse(o.produkte) : o.produkte;
+            return s + arr.reduce((ss, p) => ss + Number(p.preis) * Number(p.menge), 0);
+          } catch(e) { return s; }
+        }, 0);
+        const totalHtml = `<div class="mt-2"><strong>Gesamtsumme (angezeigte Bestellungen):</strong> CHF ${grandTotal.toFixed(2)}</div>`;
+        document.getElementById('ordersTable').insertAdjacentHTML('afterend', totalHtml);
+      } catch(e) {}
 
       // Wöchentliche Zusammenfassung
   // determine timeframe from selector (default 7 days)
@@ -194,7 +207,8 @@
     }
       document.getElementById('weeklySummary').innerHTML = summaryHtml;
     document.getElementById('exportSummaryExcel').onclick = function() {
-      if (!weeklySummaryData.length) return alert(`Keine Bestellungen in den letzten ${selectedDays} Tagen.`);
+      const selectedDaysForExport = Number(document.getElementById('summaryDays')?.value || 7);
+      if (!weeklySummaryData.length) return alert(`Keine Bestellungen in den letzten ${selectedDaysForExport} Tagen.`);
       const wsData = [
         ['Produkt', 'Geschmack', 'Menge', 'Preis (CHF)'],
         ...weeklySummaryData
@@ -256,9 +270,9 @@
         ]);
       }
       const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(wsData);
-      // set a reasonable column width and enable wrap for the products cell where we use newlines
-      ws['!cols'] = [{ wch: 6 }, { wch: 20 }, { wch: 60 }, { wch: 20 }];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  // set a reasonable column width and enable wrap for the products cell where we use newlines
+  ws['!cols'] = [{ wch: 6 }, { wch: 20 }, { wch: 60 }, { wch: 12 }, { wch: 20 }];
       // Adjust row heights for cells that contain newlines so multiline content is visible
       const rows = [];
       for (let r = 1; r <= ordersData.length; r++) {
@@ -272,6 +286,15 @@
         rows[r] = height ? { hpt: height } : undefined;
       }
       if (rows.length) ws['!rows'] = rows;
+      // attempt to format the Total column as number (Excel may still need manual format depending on client)
+      for (let r = 1; r <= ordersData.length; r++) {
+        const totalCellAddr = XLSX.utils.encode_cell({ c: 3, r }); // column D (index 3) for total
+        if (ws[totalCellAddr] && ws[totalCellAddr].v !== '') {
+          // ensure numeric type
+          ws[totalCellAddr].t = 'n';
+          ws[totalCellAddr].v = Number(ws[totalCellAddr].v);
+        }
+      }
       XLSX.utils.book_append_sheet(wb, ws, 'Bestellungen');
       XLSX.writeFile(wb, 'bestellungen.xlsx');
     };
