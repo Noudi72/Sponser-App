@@ -366,6 +366,14 @@
         } catch(e) {
           produkte = [order.produkte];
         }
+        // compute order total so we can print it in the PDF
+        let orderTotal = '';
+        try {
+          const arrTot = typeof order.produkte === 'string' ? JSON.parse(order.produkte) : order.produkte;
+          orderTotal = arrTot.reduce((s, p) => s + Number(p.preis) * Number(p.menge), 0);
+        } catch (e) {
+          orderTotal = '';
+        }
   doc.text(String(order.id), 10, startY);
   doc.text(String(order.name), 30, startY);
         // print products on multiple lines within the same table cell
@@ -399,9 +407,10 @@
           doc.text('ID', 10, startY);
           doc.text('Name', 30, startY);
           doc.text('Produkte', 70, startY);
-          doc.text('Datum', 250, startY);
+          doc.text('Total (CHF)', 230, startY);
+          doc.text('Datum', 260, startY);
           doc.setFont('helvetica', 'normal');
-          startY += 8;
+          startY += 10;
         }
       }
       doc.save('bestellungen.pdf');
