@@ -84,20 +84,29 @@
           logoWidth = img.width / img.height * logoHeight;
         }
         const logoX = (pageWidth - logoWidth) / 2;
-        doc.addImage(imgData, 'PNG', logoX, 8, logoWidth, logoHeight);
+        // place logo a bit lower to leave space for title
+        const logoY = 10;
+        doc.addImage(imgData, 'PNG', logoX, logoY, logoWidth, logoHeight);
+        // title below logo
+        doc.setFontSize(16);
+        const titleY = logoY + logoHeight + 6;
+        doc.text('Bestellung EHCB Spirit U18-Elit', pageWidth / 2, titleY, {align: 'center'});
+        doc.setFontSize(11);
+        var startY = titleY + 10;
+      } else {
+        doc.setFontSize(16);
+        doc.text('Bestellung EHCB Spirit U18-Elit', 297/2, 18, {align:'center'});
+        doc.setFontSize(11);
+        var startY = 32;
       }
-      doc.setFontSize(16);
-      doc.text('Bestellung EHCB Spirit U18-Elit', 297/2, 20 + 36, {align:'center'});
-      doc.setFontSize(11);
-      let startY = 32;
-      // Tabellenkopf
-      doc.setFont('helvetica', 'bold');
-      doc.text('Produkt', 10, startY);
-      doc.text('Geschmack', 70, startY);
-      doc.text('Menge', 130, startY);
-      doc.text('Preis (CHF)', 170, startY);
-      doc.setFont('helvetica', 'normal');
-      startY += 8;
+  // Tabellenkopf
+  doc.setFont('helvetica', 'bold');
+  doc.text('Produkt', 10, startY);
+  doc.text('Geschmack', 70, startY);
+  doc.text('Menge', 130, startY);
+  doc.text('Preis (CHF)', 170, startY);
+  doc.setFont('helvetica', 'normal');
+  startY += 10;
       for (const row of weeklySummaryData) {
         doc.text(String(row[0]), 10, startY);
         doc.text(String(row[1]), 70, startY);
