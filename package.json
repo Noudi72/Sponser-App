@@ -7,6 +7,7 @@
     "start": "node api/send-order.js"
   },
   "dependencies": {
-  "resend": "^6.0.1"
+  "resend": "^6.0.1",
+  "nodemailer": "^6.9.3"
   }
 }

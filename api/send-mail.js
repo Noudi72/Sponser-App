@@ -1,8 +1,20 @@
 // /api/send-mail.js
-import { Resend } from 'resend';
-// Removed the instantiation of Resend
-// const resend = new Resend(process.env.RESEND_API_KEY);
+import nodemailer from 'nodemailer';
 
+function createTransporter() {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT || 587);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) return null;
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465, // true for 465, false for other ports
+    auth: { user, pass },
+    pool: true
+  });
+}
 
 export default async (req, res) => {
   if (req.method !== 'POST') {
@@ -44,24 +56,22 @@ export default async (req, res) => {
       <br><b>Total: CHF ${total.toFixed(2)}</b>
       <br><br>${t.outro}
     `;
-    if (!process.env.RESEND_API_KEY) {
-      console.error('[/api/send-mail] RESEND_API_KEY not set');
-      return res.status(500).json({ error: 'Mail service not configured (RESEND_API_KEY missing)' });
+    // Prefer SMTP (Hostpoint). Ensure SMTP env vars set.
+    const transporter = createTransporter();
+    if (!transporter) {
+      console.error('[/api/send-mail] SMTP config missing (SMTP_HOST/USER/PASS)');
+      return res.status(500).json({ error: 'Mail service not configured (SMTP missing)' });
     }
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const fromAddr = process.env.RESEND_FROM || 'onboarding@resend.dev';
-    const response = await resend.emails.send({
+    const fromAddr = process.env.SMTP_FROM || process.env.RESEND_FROM || 'no-reply@team-app-spirit.ch';
+    const mailOptions = {
       from: fromAddr,
-      to: [to, admin],
+      to: [to, admin].join(','),
       subject: t.subject,
       html: htmlBody
-    });
-    console.log('Resend response:', response);
-    if (response.error) {
-      console.error('Resend error:', response.error);
-      return res.status(500).json({ error: response.error });
-    }
-    res.status(200).json({ success: true });
+    };
+    const info = await transporter.sendMail(mailOptions);
+    console.log('SMTP send info:', info);
+    res.status(200).json({ success: true, info });
   } catch (err) {
     console.error('Server error:', err);
     res.status(500).json({ error: err.message || 'Server error' });
