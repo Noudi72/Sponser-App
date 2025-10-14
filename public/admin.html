@@ -27,6 +27,7 @@
         <a href="/index.html" class="btn btn-secondary">Zurück zum Shop</a>
         <button id="exportExcel" class="btn btn-success">Export als Excel</button>
         <button id="exportPDF" class="btn btn-danger">Export als PDF</button>
+  <a href="/admin-sort/" class="btn btn-info text-white" id="openSort">Artikel sortieren</a>
       </div>
       <div id="ordersTable"></div>
       <div class="d-flex align-items-center gap-3 mt-4">
@@ -246,6 +247,8 @@
       if (pw === 'Coach_Sponser_72') {
         document.getElementById('pwPrompt').style.display = 'none';
         document.getElementById('adminContent').style.display = '';
+        // mark admin session for admin tools (checked by admin-sort tool)
+        try { sessionStorage.setItem('isAdmin', '1'); } catch(e) {}
         loadOrders();
       } else {
         document.getElementById('pwError').style.display = '';
@@ -313,6 +316,20 @@
         alert('Keine Bestellungen zum Export vorhanden!');
         return;
       }
+
+      // open admin-sort (expects built app at /admin-sort/)
+
+      // Button-Handler für 'Artikel sortieren' ganz am Ende setzen
+      window.addEventListener('DOMContentLoaded', function() {
+        var sortBtn = document.getElementById('openSort');
+        if (sortBtn) {
+          sortBtn.onclick = function() {
+            window.location.href = '/admin-sort/';
+          };
+        } else {
+          console.error('Button "Artikel sortieren" (openSort) nicht gefunden!');
+        }
+      });
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       // Logo schön einfügen: mittig, ca. 80px breit, Höhe automatisch
