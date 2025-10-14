@@ -553,7 +553,10 @@
 
     // PRODUKTE LADEN aus Supabase
     async function fetchProducts() {
-      const { data, error } = await supabase.from('produkte').select('*');
+      const { data, error } = await supabase
+        .from('produkte')
+        .select('*')
+        .order('sort_order', { ascending: true });
       if (error) {
         document.getElementById('mainView').innerHTML = "<br><i>Fehler beim Laden der Produkte!</i>";
         return;
