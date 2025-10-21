@@ -10,11 +10,6 @@ function App() {
   // require admin session flag set by main admin UI
   useEffect(() => {
     try {
-      // dev bypass: if ?dev=1 in URL, set session flag so local dev is easy
-      try {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('dev') === '1') sessionStorage.setItem('isAdmin', '1');
-      } catch(e) {}
       const isAdmin = sessionStorage.getItem('isAdmin');
       if (!isAdmin) {
         setError('Zugriff verweigert. Bitte Admin-Bereich öffnen und einloggen.');
