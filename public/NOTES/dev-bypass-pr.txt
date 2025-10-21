@@ -1,0 +1,2 @@
+Dev bypass: keep local dev helper (sessionStorage.isAdmin when ?dev=1)
+Created: Tue Oct 21 12:44:02 UTC 2025
