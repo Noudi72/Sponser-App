@@ -33,12 +33,17 @@
       <div class="d-flex align-items-center gap-3 mt-4">
         <div>
           <label class="form-label mb-1">Zeitraum Zusammenfassung:</label>
-          <select id="summaryDays" class="form-select form-select-sm">
-            <option value="7">Letzte 7 Tage</option>
-            <option value="14">Letzte 14 Tage</option>
-            <option value="21">Letzte 21 Tage</option>
-            <option value="31">Letzte 31 Tage</option>
-          </select>
+          <div class="d-flex gap-2">
+            <select id="summaryDays" class="form-select form-select-sm" style="max-width:140px;">
+              <option value="7">Letzte 7 Tage</option>
+              <option value="14">Letzte 14 Tage</option>
+              <option value="21">Letzte 21 Tage</option>
+              <option value="31">Letzte 31 Tage</option>
+            </select>
+            <input type="date" id="summaryFrom" class="form-control form-control-sm" title="Von (Datum)" />
+            <input type="date" id="summaryTo" class="form-control form-control-sm" title="Bis (Datum)" />
+          </div>
+          <small class="text-muted">Optional: Wähle ein benutzerdefiniertes Von/Bis-Datum. Leerlassen = Auswahl oben (letzte X Tage).</small>
         </div>
         <div class="ms-auto text-end">
           <small class="text-muted">Wähle Zeitraum für die Zusammenfassung und Exporte</small>
@@ -54,8 +59,8 @@
   </div>
   <script>
     document.getElementById('exportSummaryPDF').onclick = async function() {
-      const selectedDaysForExport = Number(document.getElementById('summaryDays')?.value || 7);
-      if (!weeklySummaryData.length) return alert(`Keine Bestellungen in den letzten ${selectedDaysForExport} Tagen.`);
+      const range = getSummaryRange();
+      if (!weeklySummaryData.length) return alert(`Keine Bestellungen im Zeitraum ${range.label}.`);
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       // Logo einfügen
@@ -119,6 +124,21 @@
       doc.save('woechentliche-zusammenfassung.pdf');
     };
   let weeklySummaryData = [];
+
+  function getSummaryRange() {
+    const fromVal = document.getElementById('summaryFrom')?.value;
+    const toVal = document.getElementById('summaryTo')?.value;
+    if (fromVal || toVal) {
+      const from = fromVal ? new Date(fromVal).setHours(0,0,0,0) : 0;
+      const to = toVal ? new Date(toVal).setHours(23,59,59,999) : Date.now();
+      const label = `${fromVal ? fromVal : '...'} - ${toVal ? toVal : '...'} `;
+      return { from, to, label };
+    }
+    const selectedDays = Number(document.getElementById('summaryDays')?.value || 7);
+    const to = Date.now();
+    const from = to - selectedDays * 24 * 60 * 60 * 1000;
+    return { from, to, label: `letzte ${selectedDays} Tage` };
+  }
     const supabaseUrl = 'https://sqlnoaaimkrxrkspqtbq.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxbG5vYWFpbWtyeHJrc3BxdGJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NzgyMzAsImV4cCI6MjA3MTI1NDIzMH0.oI201Oqgc2M3ckXePjZAHty1hXVC8M8qptjz8r9QUG4';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -175,10 +195,12 @@
       } catch(e) {}
 
       // Wöchentliche Zusammenfassung
-  // determine timeframe from selector (default 7 days)
-  const selectedDays = Number(document.getElementById('summaryDays')?.value || 7);
-  const since = Date.now() - selectedDays * 24 * 60 * 60 * 1000;
-  const weeklyOrders = data.filter(order => new Date(order.timestamp).getTime() >= since);
+  // determine timeframe from selector or custom from/to
+  const range = getSummaryRange();
+  const weeklyOrders = data.filter(order => {
+    const t = new Date(order.timestamp).getTime();
+    return t >= range.from && t <= range.to;
+  });
       const summaryMap = {};
       weeklySummaryData = [];
       for (const order of weeklyOrders) {
@@ -196,7 +218,7 @@
           summaryMap[key].menge += Number(p.menge);
         }
       }
-      let summaryHtml = `<h4>Zusammenfassung (${selectedDays} Tage)</h4>`;
+  let summaryHtml = `<h4>Zusammenfassung (${range.label})</h4>`;
       if (Object.keys(summaryMap).length === 0) {
         summaryHtml += `<div class='text-muted'>Keine Bestellungen in den letzten ${selectedDays} Tagen.</div>`;
       } else {
@@ -217,8 +239,8 @@
     }
       document.getElementById('weeklySummary').innerHTML = summaryHtml;
     document.getElementById('exportSummaryExcel').onclick = function() {
-      const selectedDaysForExport = Number(document.getElementById('summaryDays')?.value || 7);
-      if (!weeklySummaryData.length) return alert(`Keine Bestellungen in den letzten ${selectedDaysForExport} Tagen.`);
+      const range = getSummaryRange();
+      if (!weeklySummaryData.length) return alert(`Keine Bestellungen im Zeitraum ${range.label}.`);
       const wsData = [
         ['Produkt', 'Geschmack', 'Menge', 'Preis (CHF)'],
         ...weeklySummaryData
@@ -228,10 +250,10 @@
       XLSX.utils.book_append_sheet(wb, ws, 'Zusammenfassung');
       XLSX.writeFile(wb, 'woechentliche-zusammenfassung.xlsx');
     };
-    // re-generate summary when timeframe changes
-    document.getElementById('summaryDays').addEventListener('change', function() {
-      loadOrders();
-    });
+    // re-generate summary when timeframe changes or custom dates are set
+    document.getElementById('summaryDays').addEventListener('change', function() { loadOrders(); });
+    document.getElementById('summaryFrom').addEventListener('change', function() { loadOrders(); });
+    document.getElementById('summaryTo').addEventListener('change', function() { loadOrders(); });
     }
 
     window.deleteOrder = async function(id) {
