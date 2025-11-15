@@ -641,6 +641,7 @@
       }
       showAddToCartFeedback();
       showCart();
+    }
     function showAddToCartFeedback() {
       let fb = document.createElement('div');
       fb.className = 'cart-feedback';
@@ -648,7 +649,6 @@
       document.body.appendChild(fb);
       setTimeout(() => { fb.classList.add('show'); }, 10);
       setTimeout(() => { fb.classList.remove('show'); setTimeout(()=>fb.remove(),300); }, 1200);
-    }
     }
     function showCart() {
       view = 'cart';
