@@ -58,47 +58,103 @@
       if (!weeklySummaryData.length) return alert(`Keine Bestellungen in den letzten ${selectedDaysForExport} Tagen.`);
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-      // Logo einfügen
-      const logoUrl = '/assets/logo.png';
-      let imgData = null;
+      // Beide Logos einfügen
+      const ehcbLogoUrl = '/assets/Logo_EHCB.png';
+      const sponserLogoUrl = '/assets/Sponser_Logo.png';
+      let ehcbImgData = null;
+      let sponserImgData = null;
+      
+      // EHCB Logo laden
       try {
-        const response = await fetch(logoUrl);
+        const response = await fetch(ehcbLogoUrl);
         const blob = await response.blob();
         const reader = new FileReader();
-        imgData = await new Promise(resolve => {
+        ehcbImgData = await new Promise(resolve => {
           reader.onload = () => resolve(reader.result);
           reader.readAsDataURL(blob);
         });
       } catch(e) {}
-      if (imgData) {
-        // Seitenbreite: 297mm (A4 landscape), Logo soll zentriert und proportional sein
-        const pageWidth = 297;
-        const maxLogoWidth = 80; // maximal 80mm breit
-        const maxLogoHeight = 36; // maximal 36mm hoch
-        const img = new Image();
-        img.src = imgData;
-        await new Promise(resolve => { img.onload = resolve; });
-        let logoWidth = maxLogoWidth;
-        let logoHeight = img.height / img.width * logoWidth;
-        if (logoHeight > maxLogoHeight) {
-          logoHeight = maxLogoHeight;
-          logoWidth = img.width / img.height * logoHeight;
+      
+      // Sponser Logo laden
+      try {
+        const response = await fetch(sponserLogoUrl);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        sponserImgData = await new Promise(resolve => {
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch(e) {}
+      
+      const pageWidth = 297;
+      const maxLogoHeight = 30; // maximal 30mm hoch
+      const logoGap = 10; // Abstand zwischen den Logos
+      const logoY = 10;
+      let logosLoaded = false;
+      
+      if (ehcbImgData && sponserImgData) {
+        logosLoaded = true;
+        // Beide Logos laden und Größe berechnen
+        const ehcbImg = new Image();
+        ehcbImg.src = ehcbImgData;
+        await new Promise(resolve => { ehcbImg.onload = resolve; });
+        
+        const sponserImg = new Image();
+        sponserImg.src = sponserImgData;
+        await new Promise(resolve => { sponserImg.onload = resolve; });
+        
+        // EHCB Logo Größe berechnen
+        let ehcbLogoHeight = maxLogoHeight;
+        let ehcbLogoWidth = (ehcbImg.width / ehcbImg.height) * ehcbLogoHeight;
+        if (ehcbLogoHeight > maxLogoHeight) {
+          ehcbLogoHeight = maxLogoHeight;
+          ehcbLogoWidth = (ehcbImg.width / ehcbImg.height) * ehcbLogoHeight;
         }
-        const logoX = (pageWidth - logoWidth) / 2;
-        // place logo a bit lower to leave space for title
-        const logoY = 10;
-        doc.addImage(imgData, 'PNG', logoX, logoY, logoWidth, logoHeight);
+        
+        // Sponser Logo kleiner machen (70% der EHCB Logo Höhe)
+        let sponserLogoHeight = ehcbLogoHeight * 0.7;
+        let sponserLogoWidth = (sponserImg.width / sponserImg.height) * sponserLogoHeight;
+        
+        // Beide Logos zentriert untereinander platzieren
+        const ehcbX = (pageWidth - ehcbLogoWidth) / 2;
+        const sponserX = (pageWidth - sponserLogoWidth) / 2;
+        const sponserY = logoY + ehcbLogoHeight + logoGap;
+        
+        doc.addImage(ehcbImgData, 'PNG', ehcbX, logoY, ehcbLogoWidth, ehcbLogoHeight);
+        doc.addImage(sponserImgData, 'PNG', sponserX, sponserY, sponserLogoWidth, sponserLogoHeight);
+        // Empfängeradresse oben links
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        const addrY = logoY + 5;
+        doc.text('Empfänger:', 10, addrY);
+        doc.setFont('helvetica', 'normal');
+        doc.text('EHC Biel Sport AG', 10, addrY + 5);
+        doc.text('Noël Guyaz', 10, addrY + 10);
+        doc.text('Boulevard des Sports 18', 10, addrY + 15);
+        doc.text('2504 Biel', 10, addrY + 20);
+        doc.text('Schweiz', 10, addrY + 25);
         // title below logo
         doc.setFontSize(16);
-        const titleY = logoY + logoHeight + 6;
+        const totalLogoHeight = ehcbLogoHeight + logoGap + sponserLogoHeight;
+        const titleY = logoY + totalLogoHeight + 11;
   doc.text('Bestellung EHC Biel-Bienne Spirit', pageWidth / 2, titleY, {align: 'center'});
         doc.setFontSize(11);
         var startY = titleY + 10;
       } else {
+        // Empfängeradresse oben links (wenn kein Logo)
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Empfänger:', 10, 15);
+        doc.setFont('helvetica', 'normal');
+        doc.text('EHC Biel Sport AG', 10, 20);
+        doc.text('Noël Guyaz', 10, 25);
+        doc.text('Boulevard des Sports 18', 10, 30);
+        doc.text('2504 Biel', 10, 35);
+        doc.text('Schweiz', 10, 40);
         doc.setFontSize(16);
-  doc.text('Bestellung EHC Biel-Bienne Spirit', 297/2, 18, {align:'center'});
+  doc.text('Bestellung EHC Biel-Bienne Spirit', 297/2, 33, {align:'center'});
         doc.setFontSize(11);
-        var startY = 32;
+        var startY = 40;
       }
   // Tabellenkopf
   doc.setFont('helvetica', 'bold');
@@ -114,7 +170,37 @@
         doc.text(String(row[2]), 130, startY);
         doc.text(String(row[3]), 170, startY);
         startY += 8;
-        if (startY > 190) { doc.addPage(); if (imgData) doc.addImage(imgData, 'PNG', 10, 8, 40, 18); startY = 32; }
+        if (startY > 190) { 
+          doc.addPage(); 
+          if (logosLoaded && ehcbImgData && sponserImgData) {
+            const ehcbImg = new Image();
+            ehcbImg.src = ehcbImgData;
+            await new Promise(resolve => { ehcbImg.onload = resolve; });
+            const sponserImg = new Image();
+            sponserImg.src = sponserImgData;
+            await new Promise(resolve => { sponserImg.onload = resolve; });
+            const smallEhcbHeight = 18;
+            const ehcbSmallWidth = (ehcbImg.width / ehcbImg.height) * smallEhcbHeight;
+            const smallSponserHeight = smallEhcbHeight * 0.7;
+            const sponserSmallWidth = (sponserImg.width / sponserImg.height) * smallSponserHeight;
+            const ehcbSmallX = (297 - ehcbSmallWidth) / 2;
+            const sponserSmallX = (297 - sponserSmallWidth) / 2;
+            const sponserSmallY = 8 + smallEhcbHeight + 5;
+            doc.addImage(ehcbImgData, 'PNG', ehcbSmallX, 8, ehcbSmallWidth, smallEhcbHeight);
+            doc.addImage(sponserImgData, 'PNG', sponserSmallX, sponserSmallY, sponserSmallWidth, smallSponserHeight);
+          }
+          // Empfängeradresse auch auf weiteren Seiten
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Empfänger:', 10, 15);
+          doc.setFont('helvetica', 'normal');
+          doc.text('EHC Biel Sport AG', 10, 20);
+          doc.text('Noël Guyaz', 10, 25);
+          doc.text('Boulevard des Sports 18', 10, 30);
+          doc.text('2504 Biel', 10, 35);
+          doc.text('Schweiz', 10, 40);
+          startY = 45;
+        }
       }
       doc.save('woechentliche-zusammenfassung.pdf');
     };
@@ -332,40 +418,92 @@
       });
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-      // Logo schön einfügen: mittig, ca. 80px breit, Höhe automatisch
-      const logoUrl = '/assets/logo.png';
-      let imgData = null;
+      // Beide Logos einfügen
+      const ehcbLogoUrl = '/assets/Logo_EHCB.png';
+      const sponserLogoUrl = '/assets/Sponser_Logo.png';
+      let ehcbImgData = null;
+      let sponserImgData = null;
+      
+      // EHCB Logo laden
       try {
-        const response = await fetch(logoUrl);
+        const response = await fetch(ehcbLogoUrl);
         const blob = await response.blob();
         const reader = new FileReader();
-        imgData = await new Promise(resolve => {
+        ehcbImgData = await new Promise(resolve => {
           reader.onload = () => resolve(reader.result);
           reader.readAsDataURL(blob);
         });
       } catch(e) {}
-      if (imgData) {
-        // Seitenbreite: 297mm (A4 landscape), Logo soll zentriert und proportional sein
-        const pageWidth = 297;
-        const maxLogoWidth = 80; // maximal 80mm breit
-        const maxLogoHeight = 36; // maximal 36mm hoch
-        // Bild laden, um echtes Seitenverhältnis zu bekommen
-        const img = new Image();
-        img.src = imgData;
-        await new Promise(resolve => { img.onload = resolve; });
-        let logoWidth = maxLogoWidth;
-        let logoHeight = img.height / img.width * logoWidth;
-        if (logoHeight > maxLogoHeight) {
-          logoHeight = maxLogoHeight;
-          logoWidth = img.width / img.height * logoHeight;
+      
+      // Sponser Logo laden
+      try {
+        const response = await fetch(sponserLogoUrl);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        sponserImgData = await new Promise(resolve => {
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch(e) {}
+      
+      const pageWidth = 297;
+      const maxLogoHeight = 30; // maximal 30mm hoch
+      const logoGap = 10; // Abstand zwischen den Logos
+      const logoY = 8;
+      let logosLoaded = false;
+      
+      if (ehcbImgData && sponserImgData) {
+        logosLoaded = true;
+        // Beide Logos laden und Größe berechnen
+        const ehcbImg = new Image();
+        ehcbImg.src = ehcbImgData;
+        await new Promise(resolve => { ehcbImg.onload = resolve; });
+        
+        const sponserImg = new Image();
+        sponserImg.src = sponserImgData;
+        await new Promise(resolve => { sponserImg.onload = resolve; });
+        
+        // EHCB Logo Größe berechnen
+        let ehcbLogoHeight = maxLogoHeight;
+        let ehcbLogoWidth = (ehcbImg.width / ehcbImg.height) * ehcbLogoHeight;
+        if (ehcbLogoHeight > maxLogoHeight) {
+          ehcbLogoHeight = maxLogoHeight;
+          ehcbLogoWidth = (ehcbImg.width / ehcbImg.height) * ehcbLogoHeight;
         }
-        const logoX = (pageWidth - logoWidth) / 2;
-        doc.addImage(imgData, 'PNG', logoX, 8, logoWidth, logoHeight);
+        
+        // Sponser Logo kleiner machen (70% der EHCB Logo Höhe)
+        let sponserLogoHeight = ehcbLogoHeight * 0.7;
+        let sponserLogoWidth = (sponserImg.width / sponserImg.height) * sponserLogoHeight;
+        
+        // Beide Logos zentriert untereinander platzieren
+        const ehcbX = (pageWidth - ehcbLogoWidth) / 2;
+        const sponserX = (pageWidth - sponserLogoWidth) / 2;
+        const sponserY = logoY + ehcbLogoHeight + logoGap;
+        
+        doc.addImage(ehcbImgData, 'PNG', ehcbX, logoY, ehcbLogoWidth, ehcbLogoHeight);
+        doc.addImage(sponserImgData, 'PNG', sponserX, sponserY, sponserLogoWidth, sponserLogoHeight);
+        
+        // Titel unterhalb der Logos
+        const totalLogoHeight = ehcbLogoHeight + logoGap + sponserLogoHeight;
+        var titleY = logoY + totalLogoHeight + 17;
+      } else {
+        var titleY = 45;
       }
+      // Empfängeradresse oben links
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      const addrY = 13;
+      doc.text('Empfänger:', 10, addrY);
+      doc.setFont('helvetica', 'normal');
+      doc.text('EHC Biel Sport AG', 10, addrY + 5);
+      doc.text('Noël Guyaz', 10, addrY + 10);
+      doc.text('Boulevard des Sports 18', 10, addrY + 15);
+      doc.text('2504 Biel', 10, addrY + 20);
+      doc.text('Schweiz', 10, addrY + 25);
       doc.setFontSize(16);
-      doc.text('Bestellübersicht', 297/2, 20 + 36, {align:'center'});
+      doc.text('Bestellübersicht', 297/2, titleY, {align:'center'});
   doc.setFontSize(11);
-  let startY = 32 + 36;
+  let startY = titleY + 10;
   // Tabellenkopf
   doc.setFont('helvetica', 'bold');
   doc.text('ID', 10, startY);
@@ -412,14 +550,34 @@
         startY = Math.max(prodY, startY + 8);
         if (startY > 190) { 
           doc.addPage(); 
-          if (imgData) {
-            const logoWidth = 80;
-            const logoHeight = 36;
-            const pageWidth = 297;
-            const logoX = (pageWidth - logoWidth) / 2;
-            doc.addImage(imgData, 'PNG', logoX, 8, logoWidth, logoHeight);
+          if (logosLoaded && ehcbImgData && sponserImgData) {
+            const ehcbImg = new Image();
+            ehcbImg.src = ehcbImgData;
+            await new Promise(resolve => { ehcbImg.onload = resolve; });
+            const sponserImg = new Image();
+            sponserImg.src = sponserImgData;
+            await new Promise(resolve => { sponserImg.onload = resolve; });
+            const smallEhcbHeight = 18;
+            const ehcbSmallWidth = (ehcbImg.width / ehcbImg.height) * smallEhcbHeight;
+            const smallSponserHeight = smallEhcbHeight * 0.7;
+            const sponserSmallWidth = (sponserImg.width / sponserImg.height) * smallSponserHeight;
+            const ehcbSmallX = (297 - ehcbSmallWidth) / 2;
+            const sponserSmallX = (297 - sponserSmallWidth) / 2;
+            const sponserSmallY = 8 + smallEhcbHeight + 5;
+            doc.addImage(ehcbImgData, 'PNG', ehcbSmallX, 8, ehcbSmallWidth, smallEhcbHeight);
+            doc.addImage(sponserImgData, 'PNG', sponserSmallX, sponserSmallY, sponserSmallWidth, smallSponserHeight);
           }
-          startY = 32 + 36; 
+          // Empfängeradresse auch auf weiteren Seiten
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Empfänger:', 10, 13);
+          doc.setFont('helvetica', 'normal');
+          doc.text('EHC Biel Sport AG', 10, 18);
+          doc.text('Noël Guyaz', 10, 23);
+          doc.text('Boulevard des Sports 18', 10, 28);
+          doc.text('2504 Biel', 10, 33);
+          doc.text('Schweiz', 10, 38);
+          startY = 48; 
           doc.setFont('helvetica', 'bold');
           doc.text('ID', 10, startY);
           doc.text('Name', 30, startY);
