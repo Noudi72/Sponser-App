@@ -52,6 +52,27 @@
       outline: none;
       box-shadow: 0 0 0 2px #b71c1c33;
     }
+    .category-btn {
+      border-radius: 20px;
+      padding: 0.4em 1em;
+      font-size: 0.9rem;
+      font-weight: 500;
+      background: #f5f5f5;
+      color: #333;
+      border: 1.5px solid #ddd;
+      cursor: pointer;
+      transition: all 0.2s;
+      outline: none;
+    }
+    .category-btn:hover {
+      background: #e8e8e8;
+      border-color: #b71c1c;
+    }
+    .category-btn.active {
+      background: #b71c1c;
+      color: #fff;
+      border-color: #b71c1c;
+    }
     @media (min-width:701px){
       .main-logo-colored { max-width: 300px !important; }
       .lang-switch-center { margin-top: 32px; }
@@ -424,6 +445,11 @@
     <button class="lang-text-btn" id="btn-fr" type="button">FR</button>
     <button class="lang-text-btn" id="btn-en" type="button">EN</button>
   </div>
+  <div id="categoryFilter" style="display:none; margin: 0 auto 24px auto; max-width: 520px; padding: 0 12px;">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+      <button class="category-btn active" data-category="all" onclick="filterByCategory('all')">Alle</button>
+    </div>
+  </div>
   <div class="main-logo-center" style="display: flex; justify-content: center; margin-bottom: 26px;">
     <img src="/assets/logo.png" class="main-logo-colored" alt="EHCB Sponser Logo" style="max-width:220px; width:100%;">
   </div>
@@ -550,6 +576,7 @@
     let cart = [];
     let view = 'home';
     let selectedProduct = null, selectedVariant = '', selectedProdIdx = -1;
+    let selectedCategory = 'all';
 
     // PRODUKTE LADEN aus Supabase
     async function fetchProducts() {
@@ -562,6 +589,37 @@
         return;
       }
       products = data;
+      buildCategoryFilter();
+      showHome();
+    }
+    
+    // Kategorien-Filter aufbauen
+    function buildCategoryFilter() {
+      const categories = [...new Set(products.map(p => p.kategorie).filter(Boolean))].sort();
+      const filterDiv = document.getElementById('categoryFilter');
+      if (categories.length === 0) {
+        filterDiv.style.display = 'none';
+        return;
+      }
+      filterDiv.style.display = 'block';
+      let html = '<div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">';
+      html += '<button class="category-btn active" data-category="all" onclick="filterByCategory(\'all\')">Alle</button>';
+      categories.forEach(cat => {
+        html += `<button class="category-btn" data-category="${cat}" onclick="filterByCategory('${cat}')">${cat}</button>`;
+      });
+      html += '</div>';
+      filterDiv.innerHTML = html;
+    }
+    
+    // Nach Kategorie filtern
+    function filterByCategory(category) {
+      selectedCategory = category;
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.category === category) {
+          btn.classList.add('active');
+        }
+      });
       showHome();
     }
 
@@ -569,7 +627,14 @@
     function showHome() {
       view = 'home';
       let html = '<div class="product-grid">';
+      let displayedCount = 0;
+      
       products.forEach((prod, idx) => {
+        // Kategorien-Filter anwenden
+        if (selectedCategory !== 'all' && prod.kategorie !== selectedCategory) {
+          return;
+        }
+        
         let desc = prod['beschreibung_' + lang] || prod.beschreibung || "";
         html += `
           <div class="product-card" onclick="showDetail(${idx})">
@@ -579,7 +644,13 @@
             <div class="product-price">CHF ${Number(prod.preis).toFixed(2)}</div>
           </div>
         `;
+        displayedCount++;
       });
+      
+      if (displayedCount === 0) {
+        html += '<div style="text-align:center;padding:2em;color:#999;">Keine Produkte in dieser Kategorie gefunden.</div>';
+      }
+      
       html += '</div>';
       document.getElementById('mainView').innerHTML = html;
       updateCartCount();

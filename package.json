@@ -4,7 +4,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node api/send-order.js"
+    "start": "node api/send-order.js",
+    "dev": "cd public && python3 -m http.server 8000"
   },
   "dependencies": {
   "resend": "^6.0.1",
