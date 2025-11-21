@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin – Produktverwaltung</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-light">
+  <div class="container py-4">
+    <div id="pwPrompt" style="max-width:400px;margin:60px auto;text-align:center;">
+      <img src="/assets/logo.png" alt="EHCB Sponser Logo" style="height:60px;margin-bottom:20px;">
+      <h2 class="mb-3">Admin Login</h2>
+      <input type="password" id="pwInput" class="form-control mb-2" placeholder="Passwort">
+      <button id="pwBtn" class="btn btn-primary">Login</button>
+      <div id="pwError" class="text-danger mt-2" style="display:none;">Falsches Passwort!</div>
+    </div>
+    <div id="adminContent" style="display:none;">
+      <div class="d-flex align-items-center mb-4">
+        <img src="/assets/logo.png" alt="EHCB Sponser Logo" style="height:60px;margin-right:20px;">
+        <h2 class="mb-0">Produktverwaltung</h2>
+      </div>
+      <div class="mb-3 d-flex gap-2 flex-wrap">
+        <a href="/index.html" class="btn btn-secondary">Zurück zum Shop</a>
+        <a href="/admin.html" class="btn btn-outline-primary">Bestellübersicht</a>
+        <a href="/admin-sort/" class="btn btn-outline-info">Artikel sortieren</a>
+        <button id="addProductBtn" class="btn btn-success">+ Neues Produkt</button>
+      </div>
+      
+      <div id="messageArea"></div>
+      
+      <!-- Produktformular (versteckt bis "Neues Produkt" geklickt) -->
+      <div id="productForm" class="card mb-4" style="display:none;">
+        <div class="card-header">
+          <h5 class="mb-0" id="formTitle">Neues Produkt hinzufügen</h5>
+        </div>
+        <div class="card-body">
+          <form id="productFormElement" onsubmit="saveProduct(event)">
+            <input type="hidden" id="productId">
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Produktname *</label>
+                <input type="text" class="form-control" id="productName" required minlength="1" maxlength="200">
+                <div class="invalid-feedback">Bitte geben Sie einen Produktnamen ein (max. 200 Zeichen).</div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Preis (CHF) *</label>
+                <input type="number" step="0.01" min="0.01" class="form-control" id="productPrice" required>
+                <div class="invalid-feedback">Bitte geben Sie einen gültigen Preis ein (mindestens 0.01 CHF).</div>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Kategorie *</label>
+                <select class="form-select" id="productCategory" required>
+                  <option value="">-- Kategorie wählen --</option>
+                  <option value="Getränke">Getränke</option>
+                  <option value="Nahrungsergänzung">Nahrungsergänzung</option>
+                  <option value="Recovery">Recovery</option>
+                  <option value="Energie">Energie</option>
+                  <option value="Protein">Protein</option>
+                  <option value="Sonstiges">Sonstiges</option>
+                </select>
+                <small class="text-muted">Oder neue Kategorie eingeben:</small>
+                <input type="text" class="form-control mt-1" id="newCategory" placeholder="Neue Kategorie">
+                <div class="invalid-feedback">Bitte wählen Sie eine Kategorie oder geben Sie eine neue ein.</div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Sortierreihenfolge</label>
+                <input type="number" class="form-control" id="productSortOrder" value="0" min="0">
+                <small class="text-muted">Niedrigere Zahlen erscheinen zuerst (0 = automatisch am Ende)</small>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Beschreibung (DE)</label>
+              <textarea class="form-control" id="productDescDe" rows="2"></textarea>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Beschreibung (FR)</label>
+              <textarea class="form-control" id="productDescFr" rows="2"></textarea>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Beschreibung (EN)</label>
+              <textarea class="form-control" id="productDescEn" rows="2"></textarea>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Varianten/Geschmacksrichtungen (kommagetrennt, z.B. "Vanille, Schokolade, Erdbeere")</label>
+              <input type="text" class="form-control" id="productVariants" placeholder="Vanille, Schokolade">
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Bild-URL</label>
+              <input type="url" class="form-control" id="productImageUrl" placeholder="https://...">
+              <small class="text-muted">URL zu einem Produktbild (optional, muss mit http:// oder https:// beginnen)</small>
+              <div class="invalid-feedback">Bitte geben Sie eine gültige URL ein (beginnt mit http:// oder https://).</div>
+            </div>
+            
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary" id="saveBtn">Speichern</button>
+              <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Abbrechen</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Produktliste -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Aktuelle Produkte</h5>
+        </div>
+        <div class="card-body">
+          <div id="productsTable"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const supabaseUrl = 'https://sqlnoaaimkrxrkspqtbq.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxbG5vYWFpbWtyeHJrc3BxdGJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NzgyMzAsImV4cCI6MjA3MTI1NDIzMH0.oI201Oqgc2M3ckXePjZAHty1hXVC8M8qptjz8r9QUG4';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    
+    let products = [];
+    
+    // Prüfe ob bereits Admin-Session aktiv ist
+    function checkAdminSession() {
+      try {
+        const isAdmin = sessionStorage.getItem('isAdmin');
+        // Dev-Bypass: ?dev=1 in URL
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('dev') === '1') {
+          sessionStorage.setItem('isAdmin', '1');
+          return true;
+        }
+        if (isAdmin === '1') {
+          document.getElementById('pwPrompt').style.display = 'none';
+          document.getElementById('adminContent').style.display = '';
+          loadProducts();
+          return true;
+        }
+      } catch(e) {}
+      return false;
+    }
+    
+    // Beim Laden prüfen
+    if (!checkAdminSession()) {
+      // Passwortabfrage
+      document.getElementById('pwBtn').onclick = function() {
+        const pw = document.getElementById('pwInput').value;
+        if (pw === 'Coach_Sponser_72') {
+          document.getElementById('pwPrompt').style.display = 'none';
+          document.getElementById('adminContent').style.display = '';
+          try { sessionStorage.setItem('isAdmin', '1'); } catch(e) {}
+          loadProducts();
+        } else {
+          document.getElementById('pwError').style.display = '';
+        }
+      };
+      document.getElementById('pwInput').addEventListener('keydown', function(e){
+        if(e.key==='Enter') document.getElementById('pwBtn').click();
+      });
+    }
+    
+    // Produkte laden
+    async function loadProducts() {
+      const { data, error } = await supabase
+        .from('produkte')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      
+      if (error) {
+        showMessage('Fehler beim Laden der Produkte: ' + error.message, 'danger');
+        return;
+      }
+      
+      products = data || [];
+      displayProducts();
+    }
+    
+    // Produkte anzeigen
+    function displayProducts() {
+      const table = document.getElementById('productsTable');
+      if (products.length === 0) {
+        table.innerHTML = '<p class="text-muted">Keine Produkte vorhanden.</p>';
+        return;
+      }
+      
+      let html = '<div class="table-responsive"><table class="table table-striped table-hover"><thead><tr>';
+      html += '<th>Sort</th><th>Kategorie</th><th>Produkt</th><th>Preis</th><th>Varianten</th><th>Bild</th><th>Aktionen</th>';
+      html += '</tr></thead><tbody>';
+      
+      products.forEach(prod => {
+        const variants = prod.variante || '';
+        const image = prod.bild_url ? `<img src="${prod.bild_url}" style="max-width:50px;max-height:50px;object-fit:contain;" alt="${prod.produkt}">` : '-';
+        const category = prod.kategorie || 'Keine Kategorie';
+        html += `<tr>
+          <td>${prod.sort_order || 0}</td>
+          <td><span class="badge bg-secondary">${category}</span></td>
+          <td><strong>${prod.produkt}</strong><br><small class="text-muted">${(prod.beschreibung || '').substring(0, 50)}${(prod.beschreibung || '').length > 50 ? '...' : ''}</small></td>
+          <td>CHF ${Number(prod.preis || 0).toFixed(2)}</td>
+          <td>${variants || '-'}</td>
+          <td>${image}</td>
+          <td>
+            <button class="btn btn-sm btn-primary me-1" onclick="editProduct(${prod.id})">Bearbeiten</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteProduct(${prod.id})">Löschen</button>
+          </td>
+        </tr>`;
+      });
+      
+      html += '</tbody></table></div>';
+      table.innerHTML = html;
+    }
+    
+    // Neues Produkt Button
+    document.getElementById('addProductBtn').onclick = function() {
+      document.getElementById('productId').value = '';
+      document.getElementById('productFormElement').reset();
+      document.getElementById('newCategory').value = '';
+      // Alle Validierungs-Fehler entfernen
+      document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+      document.getElementById('formTitle').textContent = 'Neues Produkt hinzufügen';
+      document.getElementById('productForm').style.display = '';
+      document.getElementById('productForm').scrollIntoView({ behavior: 'smooth' });
+    };
+    
+    // Neue Kategorie Eingabe - wenn ausgefüllt, Select zurücksetzen
+    document.getElementById('newCategory').addEventListener('input', function() {
+      if (this.value.trim().length > 0) {
+        document.getElementById('productCategory').value = '';
+      }
+    });
+    
+    // Kategorie Select - wenn gewählt, neue Kategorie zurücksetzen
+    document.getElementById('productCategory').addEventListener('change', function() {
+      if (this.value) {
+        document.getElementById('newCategory').value = '';
+      }
+    });
+    
+    // Produkt bearbeiten
+    function editProduct(id) {
+      const product = products.find(p => p.id === id);
+      if (!product) return;
+      
+      document.getElementById('productId').value = product.id;
+      document.getElementById('productName').value = product.produkt || '';
+      document.getElementById('productPrice').value = product.preis || '';
+      // Beschreibung: Prüfe zuerst beschreibung_de, dann beschreibung (Fallback)
+      document.getElementById('productDescDe').value = product.beschreibung_de || product.beschreibung || '';
+      document.getElementById('productDescFr').value = product.beschreibung_fr || '';
+      document.getElementById('productDescEn').value = product.beschreibung_en || '';
+      document.getElementById('productVariants').value = product.variante || '';
+      document.getElementById('productImageUrl').value = product.bild_url || '';
+      document.getElementById('productSortOrder').value = product.sort_order || 0;
+      
+      // Kategorie setzen
+      const category = product.kategorie || '';
+      const categorySelect = document.getElementById('productCategory');
+      if (category && Array.from(categorySelect.options).some(opt => opt.value === category)) {
+        categorySelect.value = category;
+      } else {
+        categorySelect.value = '';
+        document.getElementById('newCategory').value = category;
+      }
+      
+      document.getElementById('formTitle').textContent = 'Produkt bearbeiten';
+      document.getElementById('productForm').style.display = '';
+      document.getElementById('productForm').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Bearbeitung abbrechen
+    function cancelEdit() {
+      document.getElementById('productForm').style.display = 'none';
+      document.getElementById('productFormElement').reset();
+      document.getElementById('newCategory').value = '';
+      // Alle Validierungs-Fehler entfernen
+      document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    }
+    
+    // Produkt speichern
+    async function saveProduct(event) {
+      event.preventDefault();
+      
+      // Validierung
+      const name = document.getElementById('productName').value.trim();
+      const price = parseFloat(document.getElementById('productPrice').value);
+      const categorySelect = document.getElementById('productCategory').value;
+      const newCategory = document.getElementById('newCategory').value.trim();
+      const imageUrl = document.getElementById('productImageUrl').value.trim();
+      
+      // Validierung: Name
+      if (!name || name.length === 0) {
+        showMessage('Bitte geben Sie einen Produktnamen ein.', 'danger');
+        document.getElementById('productName').classList.add('is-invalid');
+        return;
+      }
+      if (name.length > 200) {
+        showMessage('Der Produktname darf maximal 200 Zeichen lang sein.', 'danger');
+        document.getElementById('productName').classList.add('is-invalid');
+        return;
+      }
+      document.getElementById('productName').classList.remove('is-invalid');
+      
+      // Validierung: Preis
+      if (isNaN(price) || price <= 0) {
+        showMessage('Bitte geben Sie einen gültigen Preis ein (größer als 0).', 'danger');
+        document.getElementById('productPrice').classList.add('is-invalid');
+        return;
+      }
+      document.getElementById('productPrice').classList.remove('is-invalid');
+      
+      // Validierung: Kategorie
+      const category = categorySelect || newCategory;
+      if (!category || category.trim().length === 0) {
+        showMessage('Bitte wählen Sie eine Kategorie oder geben Sie eine neue ein.', 'danger');
+        document.getElementById('productCategory').classList.add('is-invalid');
+        return;
+      }
+      document.getElementById('productCategory').classList.remove('is-invalid');
+      
+      // Validierung: Bild-URL (falls angegeben)
+      if (imageUrl && !imageUrl.match(/^https?:\/\/.+/)) {
+        showMessage('Die Bild-URL muss mit http:// oder https:// beginnen.', 'danger');
+        document.getElementById('productImageUrl').classList.add('is-invalid');
+        return;
+      }
+      document.getElementById('productImageUrl').classList.remove('is-invalid');
+      
+      const id = document.getElementById('productId').value;
+      const productData = {
+        produkt: name,
+        preis: price,
+        kategorie: category.trim(),
+        beschreibung_de: document.getElementById('productDescDe').value.trim(),
+        beschreibung_fr: document.getElementById('productDescFr').value.trim(),
+        beschreibung_en: document.getElementById('productDescEn').value.trim(),
+        // Fallback für Kompatibilität: beschreibung = beschreibung_de
+        beschreibung: document.getElementById('productDescDe').value.trim(),
+        variante: document.getElementById('productVariants').value.trim(),
+        bild_url: imageUrl || null,
+        sort_order: parseInt(document.getElementById('productSortOrder').value) || 0
+      };
+      
+      // Wenn sort_order 0 ist, setze es auf max + 1
+      if (productData.sort_order === 0) {
+        const maxOrder = Math.max(...products.map(p => p.sort_order || 0), 0);
+        productData.sort_order = maxOrder + 1;
+      }
+      
+      try {
+        let result;
+        if (id) {
+          // Update
+          result = await supabase
+            .from('produkte')
+            .update(productData)
+            .eq('id', id);
+        } else {
+          // Insert
+          result = await supabase
+            .from('produkte')
+            .insert([productData]);
+        }
+        
+        if (result.error) {
+          showMessage('Fehler beim Speichern: ' + result.error.message, 'danger');
+          return;
+        }
+        
+        showMessage(id ? 'Produkt erfolgreich aktualisiert!' : 'Produkt erfolgreich hinzugefügt!', 'success');
+        cancelEdit();
+        loadProducts();
+      } catch (error) {
+        showMessage('Fehler: ' + error.message, 'danger');
+      }
+    }
+    
+    // Produkt löschen
+    async function deleteProduct(id) {
+      const product = products.find(p => p.id === id);
+      if (!product) return;
+      
+      if (!confirm(`Möchten Sie "${product.produkt}" wirklich löschen?`)) return;
+      
+      const { error } = await supabase
+        .from('produkte')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        showMessage('Fehler beim Löschen: ' + error.message, 'danger');
+        return;
+      }
+      
+      showMessage('Produkt erfolgreich gelöscht!', 'success');
+      loadProducts();
+    }
+    
+    // Nachricht anzeigen
+    function showMessage(text, type = 'info') {
+      const messageArea = document.getElementById('messageArea');
+      messageArea.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+        ${text}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>`;
+      setTimeout(() => {
+        messageArea.innerHTML = '';
+      }, 5000);
+    }
+  </script>
+</body>
+</html>
+
