@@ -129,7 +129,8 @@
     if (typeof window.supabaseClient === 'undefined') {
       window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
     }
-    const supabase = window.supabaseClient;
+    // Verwende window.supabaseClient direkt statt lokaler Variable, um Konflikte zu vermeiden
+    const supabaseClient = window.supabaseClient;
     
     let products = [];
     
@@ -174,7 +175,7 @@
     
     // Produkte laden
     async function loadProducts() {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('produkte')
         .select('*')
         .order('sort_order', { ascending: true });
@@ -360,13 +361,13 @@
         let result;
         if (id) {
           // Update
-          result = await supabase
+          result = await supabaseClient
             .from('produkte')
             .update(productData)
             .eq('id', id);
         } else {
           // Insert
-          result = await supabase
+          result = await supabaseClient
             .from('produkte')
             .insert([productData]);
         }
@@ -391,7 +392,7 @@
       
       if (!confirm(`Möchten Sie "${product.produkt}" wirklich löschen?`)) return;
       
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from('produkte')
         .delete()
         .eq('id', id);
