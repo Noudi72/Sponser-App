@@ -585,30 +585,41 @@
         .select('*')
         .order('sort_order', { ascending: true });
       if (error) {
-        document.getElementById('mainView').innerHTML = "<br><i>Fehler beim Laden der Produkte!</i>";
+        console.error('Fehler beim Laden der Produkte:', error);
+        document.getElementById('mainView').innerHTML = "<br><i>Fehler beim Laden der Produkte: " + error.message + "</i>";
         return;
       }
-      products = data;
+      products = data || [];
+      console.log('Produkte geladen:', products.length);
       buildCategoryFilter();
       showHome();
     }
     
     // Kategorien-Filter aufbauen
     function buildCategoryFilter() {
-      const categories = [...new Set(products.map(p => p.kategorie).filter(Boolean))].sort();
-      const filterDiv = document.getElementById('categoryFilter');
-      if (categories.length === 0) {
-        filterDiv.style.display = 'none';
-        return;
+      try {
+        const filterDiv = document.getElementById('categoryFilter');
+        if (!filterDiv) {
+          console.warn('categoryFilter Element nicht gefunden');
+          return;
+        }
+        
+        const categories = [...new Set(products.map(p => p.kategorie).filter(Boolean))].sort();
+        if (categories.length === 0) {
+          filterDiv.style.display = 'none';
+          return;
+        }
+        filterDiv.style.display = 'block';
+        let html = '<div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">';
+        html += '<button class="category-btn active" data-category="all" onclick="filterByCategory(\'all\')">Alle</button>';
+        categories.forEach(cat => {
+          html += `<button class="category-btn" data-category="${cat}" onclick="filterByCategory('${cat}')">${cat}</button>`;
+        });
+        html += '</div>';
+        filterDiv.innerHTML = html;
+      } catch (error) {
+        console.error('Fehler beim Aufbauen des Kategorien-Filters:', error);
       }
-      filterDiv.style.display = 'block';
-      let html = '<div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">';
-      html += '<button class="category-btn active" data-category="all" onclick="filterByCategory(\'all\')">Alle</button>';
-      categories.forEach(cat => {
-        html += `<button class="category-btn" data-category="${cat}" onclick="filterByCategory('${cat}')">${cat}</button>`;
-      });
-      html += '</div>';
-      filterDiv.innerHTML = html;
     }
     
     // Nach Kategorie filtern
@@ -631,8 +642,12 @@
       
       products.forEach((prod, idx) => {
         // Kategorien-Filter anwenden
-        if (selectedCategory !== 'all' && prod.kategorie !== selectedCategory) {
-          return;
+        // Wenn eine Kategorie ausgewählt ist und das Produkt keine Kategorie hat oder eine andere, überspringen
+        if (selectedCategory !== 'all') {
+          const prodCategory = prod.kategorie || null;
+          if (prodCategory !== selectedCategory) {
+            return;
+          }
         }
         
         let desc = prod['beschreibung_' + lang] || prod.beschreibung || "";
