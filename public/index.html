@@ -774,11 +774,28 @@
       updateCartCount();
     }
 
+    let isSubmitting = false; // Flag um mehrfaches Absenden zu verhindern
+    
     async function submitOrder() {
+      // Verhindere mehrfaches Absenden
+      if (isSubmitting) {
+        console.log('Bestellung wird bereits verarbeitet...');
+        return;
+      }
+      
       let name = document.getElementById('orderName').value.trim();
       let email = document.getElementById('orderEmail').value.trim();
       if (!name) return alert(txt[lang].alertName);
       if (!email || !email.includes("@")) return alert(txt[lang].alertEmail);
+      
+      // Button deaktivieren und Flag setzen
+      const submitBtn = document.querySelector('.order-btn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = txt[lang].sending + '...';
+      }
+      isSubmitting = true;
+      
       let ordered = cart.map(item=>({
         produkt: item.produkt,
         geschmack: item.variante,
@@ -788,37 +805,50 @@
 
       document.getElementById('orderResult').innerHTML = "<br><i>" + txt[lang].sending + "</i>";
 
-      // 1. Bestellung in Supabase speichern
-      let { error } = await supabaseClient.from('bestellungen').insert([{
-        name,
-        email,
-        produkte: ordered,
-        timestamp: new Date().toISOString()
-      }]);
-      if (error) {
-        alert("Fehler beim Speichern: " + error.message);
-        return;
-      }
+      try {
+        // 1. Bestellung in Supabase speichern
+        let { error } = await supabaseClient.from('bestellungen').insert([{
+          name,
+          email,
+          produkte: ordered,
+          timestamp: new Date().toISOString()
+        }]);
+        if (error) {
+          throw new Error("Fehler beim Speichern: " + error.message);
+        }
 
-      // 2. E-Mail an Kunde + Admin senden (Resend-API via Serverless)
-      fetch('/api/send-mail', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          name, email, ordered, lang,
-          to: email,                // Kunde
-          admin: "n.guyaz@icloud.com" // Admin
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
+        // 2. E-Mail an Kunde + Admin senden (Resend-API via Serverless)
+        const mailResponse = await fetch('/api/send-mail', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            name, email, ordered, lang,
+            to: email,                // Kunde
+            admin: "n.guyaz@icloud.com" // Admin
+          })
+        });
+        
+        const mailData = await mailResponse.json();
+        if (!mailResponse.ok) {
+          console.error('E-Mail-Fehler:', mailData);
+          // Bestellung wurde gespeichert, aber E-Mail fehlgeschlagen
+          alert("Bestellung wurde gespeichert, aber E-Mail konnte nicht gesendet werden. Bitte kontaktiere uns direkt.");
+        }
+        
         cart = [];
         showHome();
         alert(txt[lang].sent);
-      })
-      .catch(err => {
-        alert("Fehler beim Senden der Bestätigungsmail.");
-      });
+      } catch (err) {
+        console.error('Fehler bei Bestellung:', err);
+        alert("Fehler: " + err.message);
+      } finally {
+        // Flag zurücksetzen und Button wieder aktivieren
+        isSubmitting = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = txt[lang].send;
+        }
+      }
     }
 
     // Sprachwahl-Buttons initialisieren (jetzt als Text-Buttons)
