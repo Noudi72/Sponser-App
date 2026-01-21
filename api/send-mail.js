@@ -63,15 +63,35 @@ export default async (req, res) => {
       return res.status(500).json({ error: 'Mail service not configured (SMTP missing)' });
     }
     const fromAddr = process.env.SMTP_FROM || process.env.RESEND_FROM || 'no-reply@team-app-spirit.ch';
-    const mailOptions = {
+    
+    // E-Mail an Kunden senden (separat)
+    const customerMailOptions = {
       from: fromAddr,
-      to: [to, admin].join(','),
+      to: to,
       subject: t.subject,
       html: htmlBody
     };
-    const info = await transporter.sendMail(mailOptions);
-    console.log('SMTP send info:', info);
-    res.status(200).json({ success: true, info });
+    const customerInfo = await transporter.sendMail(customerMailOptions);
+    console.log('E-Mail an Kunde gesendet:', customerInfo);
+    
+    // E-Mail an Admin senden (separat mit anderem Betreff)
+    const adminMailOptions = {
+      from: fromAddr,
+      to: admin,
+      subject: `Neue Bestellung von ${name} (${email})`,
+      html: `
+        <h3>Neue Bestellung erhalten</h3>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>E-Mail:</strong> ${email}</p>
+        <p><strong>Bestellte Produkte:</strong></p>
+        <ul>${list}</ul>
+        <p><strong>Total: CHF ${total.toFixed(2)}</strong></p>
+      `
+    };
+    const adminInfo = await transporter.sendMail(adminMailOptions);
+    console.log('E-Mail an Admin gesendet:', adminInfo);
+    
+    res.status(200).json({ success: true, customerInfo, adminInfo });
   } catch (err) {
     console.error('Server error:', err);
     res.status(500).json({ error: err.message || 'Server error' });
