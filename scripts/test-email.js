@@ -2,10 +2,15 @@
 // Führt einen Test-E-Mail-Versand durch
 
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
 
 // Lade Umgebungsvariablen (falls vorhanden)
-dotenv.config();
+try {
+  const dotenv = await import('dotenv');
+  dotenv.default.config();
+} catch (e) {
+  // dotenv nicht installiert - Umgebungsvariablen müssen direkt gesetzt sein
+  console.log('Hinweis: dotenv nicht gefunden. Verwende Umgebungsvariablen direkt.');
+}
 
 function createTransporter() {
   const host = process.env.SMTP_HOST;
